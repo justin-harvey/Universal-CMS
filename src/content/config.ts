@@ -33,7 +33,10 @@ const documents = defineCollection({
   schema: z.object({
     title: z.string(),
     category: z.string().default(''),
-    slug: z.string(),
+    // NB: no `slug` here — Astro reserves it and derives it from the filename.
+    // materialize.mjs writes each document as <slug>.md, so entry.slug IS the
+    // slug. The slug still arrives in frontmatter; zod simply ignores the extra
+    // key. Use `entry.slug` (not `entry.data.slug`) when building file links.
     legacy_url: z.string().default(''),
     adopted_on: z.string().optional(),
     accessibility_checked: z.string().default('not_checked'),

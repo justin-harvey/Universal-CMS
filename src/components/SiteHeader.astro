@@ -1,0 +1,96 @@
+---
+// Site masthead + primary navigation. Ported in spirit from Hope-Maine's
+// SiteHeader: a navy institutional band, a brand link home, and a task-first
+// nav whose labels come from site.config (so "Groups" can read "Committees",
+// "Ministries", "Teams" without touching markup). No JS: the nav is a plain
+// list of links that works before — and without — any script.
+import { site } from "@config";
+
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
+
+const nav = [
+  { href: "/", label: "Home" },
+  { href: "/events", label: "Events" },
+  { href: "/documents", label: "Documents" },
+  { href: "/groups", label: site.groupLabel || "Groups" },
+  { href: "/faq", label: "FAQ" },
+];
+
+// Current if the path equals the link, or is a child of it (e.g. /faq/<slug>).
+const isCurrent = (href: string) =>
+  href === "/" ? path === "/" : path === href || path.startsWith(href + "/");
+---
+
+<header class="site-header">
+  <div class="site-header__bar">
+    <a href="/" class="site-header__brand">{site.name}</a>
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              aria-current={isCurrent(item.href) ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background: var(--navy);
+    color: var(--ink-inverse);
+  }
+  .site-header__bar {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+  }
+  .site-header__brand {
+    color: var(--ink-inverse);
+    font-weight: 700;
+    font-size: 1.25rem;
+    text-decoration: none;
+  }
+  .site-header__brand:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .site-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .site-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    color: var(--ink-inverse);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .site-nav a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 2px;
+  }
+  /* The current page is marked by a solid underline, not colour alone. */
+  .site-nav a[aria-current="page"] {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 3px;
+  }
+</style>

@@ -1,0 +1,84 @@
+---
+// Groups page (M2). The collection is generic ("groups"); what the org CALLS it
+// comes from site.config.groupLabel — "Committees", "Ministries", "Teams". Each
+// entry shows its name, when it meets, who to contact, and a description
+// (markdown body). Sorted by the editor-set sort_order, then name. Static build.
+import Base from "@/layouts/Base.astro";
+import { site } from "@config";
+import { getCollection } from "astro:content";
+
+const label = site.groupLabel || "Groups";
+
+const groups = (await getCollection("groups")).sort((a, b) => {
+  const s = (a.data.sort_order ?? 100) - (b.data.sort_order ?? 100);
+  return s !== 0 ? s : a.data.name.localeCompare(b.data.name);
+});
+const rendered = await Promise.all(
+  groups.map(async (e) => ({ data: e.data, Content: (await e.render()).Content }))
+);
+---
+
+<Base title={label} description={`${label} at ${site.name}.`}>
+  <h1>{label}</h1>
+
+  {rendered.length === 0 ? (
+    <p class="empty">No {label.toLowerCase()} have been published yet.</p>
+  ) : (
+    <div class="group-list">
+      {rendered.map(({ data, Content }) => (
+        <article class="panel group">
+          <h2 class="group__name">{data.name}</h2>
+          <dl class="group__meta">
+            {data.schedule && (
+              <div class="data-row">
+                <dt>Meets</dt>
+                <dd>{data.schedule}</dd>
+              </div>
+            )}
+            {(data.contact_name || data.contact_email) && (
+              <div class="data-row">
+                <dt>Contact</dt>
+                <dd>
+                  {data.contact_name}
+                  {data.contact_name && data.contact_email && " · "}
+                  {data.contact_email && (
+                    <a class="prose-link" href={`mailto:${data.contact_email}`}>{data.contact_email}</a>
+                  )}
+                </dd>
+              </div>
+            )}
+          </dl>
+          <div class="rich-text"><Content /></div>
+        </article>
+      ))}
+    </div>
+  )}
+</Base>
+
+<style>
+  .empty {
+    color: var(--ink-muted);
+  }
+  .group-list {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .group {
+    padding: 1rem 1.25rem;
+  }
+  .group__name {
+    margin: 0 0 0.5rem;
+    font-size: 1.3rem;
+  }
+  .group__meta {
+    margin: 0 0 0.75rem;
+  }
+  .group__meta dt {
+    font-weight: 700;
+  }
+  .group__meta dd {
+    margin: 0;
+    text-align: right;
+    color: var(--ink-muted);
+  }
+</style>

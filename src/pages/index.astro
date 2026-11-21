@@ -1,34 +1,145 @@
 ---
-// Home page. In this scaffold it renders the site identity and intro from
-// site.config.ts so a fresh clone builds and shows something real. The
-// milestone build (M6) replaces this body with the published announcements /
-// upcoming events / latest documents read from the materialized content
-// collections — still 100% static, no runtime DB.
+// Home page (M2). Reads the materialized collections and shows pinned + recent
+// announcements and the next upcoming events. 100% static: the content was
+// baked from Supabase at build time by scripts/materialize.mjs. A fresh clone
+// with no database simply has empty collections and shows the template intro.
 import Base from "@/layouts/Base.astro";
 import { site } from "@config";
+import { getCollection } from "astro:content";
+import { formatDate, formatEventWhen, isExpired, isPast } from "@/lib/format";
+
+// Announcements: drop expired, pinned first, then newest publish_date.
+const announcements = (await getCollection("announcements"))
+  .filter((a) => !isExpired(a.data.expires_on))
+  .sort((a, b) => {
+    if (a.data.pinned !== b.data.pinned) return a.data.pinned ? -1 : 1;
+    return (b.data.publish_date ?? "").localeCompare(a.data.publish_date ?? "");
+  })
+  .slice(0, 5);
+const announcementsHtml = await Promise.all(
+  announcements.map(async (e) => ({ data: e.data, Content: (await e.render()).Content }))
+);
+
+// Events: next three that haven't started yet, soonest first.
+const upcoming = (await getCollection("events"))
+  .filter((e) => !isPast(e.data.starts_at))
+  .sort((a, b) => a.data.starts_at.localeCompare(b.data.starts_at))
+  .slice(0, 3);
+
+const hasContent = announcements.length > 0 || upcoming.length > 0;
 ---
 
 <Base title="Home" description={site.tagline}>
   <h1>{site.name}</h1>
   <p class="lede">{site.hero.intro}</p>
 
-  <section aria-labelledby="getting-started">
-    <h2 id="getting-started">This is the blank template</h2>
-    <p>
-      Edit <code>site.config.ts</code> (or run <code>npm run setup</code>) to make
-      this your organisation. Then publish content two ways:
-    </p>
-    <ul>
-      <li>Sign in to the <a href="/studio">Studio</a> with a magic link, or</li>
-      <li>Email it to <strong>{site.email.inboundAddress}</strong> from an approved address.</li>
-    </ul>
-  </section>
+  {announcementsHtml.length > 0 && (
+    <section aria-labelledby="announcements">
+      <h2 id="announcements">Announcements</h2>
+      {announcementsHtml.map(({ data, Content }) => (
+        <article class={data.pinned ? "panel ann ann--pinned" : "panel ann"}>
+          <h3 class="ann__title">
+            {data.pinned && <span class="ann__pin">Pinned</span>}
+            {data.title}
+          </h3>
+          {data.publish_date && (
+            <p class="ann__date">{formatDate(data.publish_date)}</p>
+          )}
+          <div class="rich-text"><Content /></div>
+        </article>
+      ))}
+    </section>
+  )}
+
+  {upcoming.length > 0 && (
+    <section aria-labelledby="upcoming">
+      <h2 id="upcoming">Upcoming events</h2>
+      <ul class="event-list">
+        {upcoming.map((e) => (
+          <li class="event">
+            <p class="event__when">{formatEventWhen(e.data.starts_at, e.data.ends_at)}</p>
+            <p class="event__title">{e.data.title}</p>
+            {e.data.location && <p class="event__loc">{e.data.location}</p>}
+          </li>
+        ))}
+      </ul>
+      <p><a class="prose-link" href="/events">See all events →</a></p>
+    </section>
+  )}
+
+  {!hasContent && (
+    <section aria-labelledby="getting-started">
+      <h2 id="getting-started">This is the blank template</h2>
+      <p>
+        Edit <code>site.config.ts</code> (or run <code>npm run setup</code>) to make
+        this your organisation. Then publish content two ways:
+      </p>
+      <ul>
+        <li>Sign in to the <a class="prose-link" href="/studio">Studio</a> with a magic link, or</li>
+        <li>Email it to <strong>{site.email.inboundAddress}</strong> from an approved address.</li>
+      </ul>
+    </section>
+  )}
 </Base>
 
 <style>
   .lede {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
+    line-height: 1.6;
     color: var(--ink-muted);
+  }
+  h2 {
+    margin-top: 2.5rem;
+  }
+  .ann {
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+  }
+  .ann--pinned {
+    border-left: var(--line-width-accent) solid var(--blue);
+    background: var(--blue-wash);
+  }
+  .ann__title {
+    margin: 0 0 0.25rem;
+    font-size: 1.25rem;
+  }
+  .ann__pin {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--blue-link);
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  .ann__date {
+    margin: 0 0 0.75rem;
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+  }
+  .event-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .event {
+    padding: 0.875rem 0;
+    border-bottom: var(--line-width) solid var(--line);
+  }
+  .event__when {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+  }
+  .event__title {
+    margin: 0.1rem 0 0;
+    font-weight: 700;
+  }
+  .event__loc {
+    margin: 0.1rem 0 0;
+    color: var(--ink-muted);
+    font-size: 0.95rem;
   }
   code {
     background: var(--surface-1);

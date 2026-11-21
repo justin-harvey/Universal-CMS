@@ -108,14 +108,14 @@ export const site: SiteConfig = {
   tagline: "A placeholder organisation. Edit site.config.ts.",
   timezone: "America/New_York",
   siteUrl: "http://localhost:4321",
-  firstAdminEmail: "admin@example.org",
+  firstAdminEmail: "deanburke10@gmail.com",
   adminTitleSuffix: " · Example Organisation",
 
   email: {
     inboundAddress: "post@example.org",
     reviewThreshold: 0.85,
     undoWindowHours: 24,
-    adminNotifyAddress: "admin@example.org",
+    adminNotifyAddress: "deanburke10@gmail.com",
   },
 
   contact: {

@@ -7,6 +7,8 @@ import "@/styles/tokens.css";
 import "@/styles/primitives.css";
 import "@/styles/patterns.css";
 import { site, siteDisplayName } from "@config";
+import SiteHeader from "@/components/SiteHeader.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
 
 interface Props {
   title?: string;
@@ -28,24 +30,17 @@ const pageTitle = title ? `${title} · ${site.name}` : siteDisplayName;
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
-    <header class="site-header">
-      <a href="/" class="site-header__brand">{site.name}</a>
-    </header>
+    <SiteHeader />
     <main id="main" class="site-main">
       <slot />
     </main>
-    <footer class="site-footer">
-      <p>{siteDisplayName}</p>
-      {site.contact.officeName && (
-        <p>{site.contact.officeName} · {site.contact.addressLine} · {site.contact.cityStateZip}</p>
-      )}
-    </footer>
+    <SiteFooter />
   </body>
 </html>
 
 <style>
-  /* Minimal shell styling; the design tokens carry colour/contrast. The full
-     header/footer components are an M6 port from Hope-Maine's SiteHeader. */
+  /* Shell styling; the design tokens carry colour/contrast. The masthead and
+     footer are their own ported components (SiteHeader / SiteFooter). */
   .skip-link {
     position: absolute;
     left: -9999px;
@@ -58,26 +53,9 @@ const pageTitle = title ? `${title} · ${site.name}` : siteDisplayName;
     color: var(--focus-ink);
     padding: 0.5rem 0.75rem;
   }
-  .site-header {
-    background: var(--navy);
-    color: var(--ink-inverse);
-    padding: 1rem 1.25rem;
-  }
-  .site-header__brand {
-    color: var(--ink-inverse);
-    font-weight: 700;
-    font-size: 1.25rem;
-    text-decoration: none;
-  }
   .site-main {
     max-width: var(--measure);
     margin: 0 auto;
     padding: 2rem 1.25rem;
-  }
-  .site-footer {
-    border-top: var(--line-width-strong) solid var(--line-strong);
-    padding: 1.5rem 1.25rem;
-    color: var(--ink-muted);
-    font-size: 0.9rem;
   }
 </style>

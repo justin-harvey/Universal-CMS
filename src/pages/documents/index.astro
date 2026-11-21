@@ -1,0 +1,120 @@
+---
+// Documents page (M2). Lists published documents grouped by category, in the
+// order site.config declares them (then any stray categories, alphabetical).
+// Each file links to the stable /documents/file/<slug> redirect — the Netlify
+// function mints a short-lived signed URL from the private bucket, so the
+// public link never changes and the storage path is never exposed.
+//
+// The accessibility flag carried from ingest (Hope-Maine's check) is surfaced:
+// an image-only PDF is marked so readers know it may not be screen-reader
+// friendly, rather than hiding the gap.
+import Base from "@/layouts/Base.astro";
+import { site } from "@config";
+import { getCollection } from "astro:content";
+import { formatDate } from "@/lib/format";
+
+const docs = await getCollection("documents");
+
+// Group by category.
+const byCategory = new Map<string, typeof docs>();
+for (const d of docs) {
+  const cat = d.data.category || "Uncategorised";
+  if (!byCategory.has(cat)) byCategory.set(cat, []);
+  byCategory.get(cat)!.push(d);
+}
+
+// Config order first, then any leftover categories alphabetically.
+const configOrder = site.documentCategories;
+const extra = [...byCategory.keys()]
+  .filter((c) => !configOrder.includes(c))
+  .sort((a, b) => a.localeCompare(b));
+const orderedCategories = [...configOrder, ...extra].filter((c) => byCategory.has(c));
+
+// Within a category: newest adopted_on first, then title.
+for (const list of byCategory.values()) {
+  list.sort((a, b) => {
+    const d = (b.data.adopted_on ?? "").localeCompare(a.data.adopted_on ?? "");
+    return d !== 0 ? d : a.data.title.localeCompare(b.data.title);
+  });
+}
+---
+
+<Base title="Documents" description="Published documents and forms.">
+  <h1>Documents</h1>
+
+  {orderedCategories.length === 0 ? (
+    <p class="empty">No documents have been published yet.</p>
+  ) : (
+    orderedCategories.map((cat) => (
+      <section aria-labelledby={`cat-${cat.replace(/\W+/g, "-")}`}>
+        <h2 id={`cat-${cat.replace(/\W+/g, "-")}`}>{cat}</h2>
+        <ul class="doc-list">
+          {byCategory.get(cat)!.map((d) => (
+            <li class="doc">
+              <a class="doc__link" href={`/documents/file/${d.slug}`}>{d.data.title}</a>
+              <span class="doc__meta">
+                {d.data.adopted_on && <span class="doc__date">{formatDate(d.data.adopted_on)}</span>}
+                {d.data.accessibility_checked === "image_only" && (
+                  <span class="doc__flag doc__flag--warn">Scanned image — may not be screen-reader accessible</span>
+                )}
+                {d.data.accessibility_checked === "not_checked" && (
+                  <span class="doc__flag">Accessibility not checked</span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  )}
+</Base>
+
+<style>
+  .empty {
+    color: var(--ink-muted);
+  }
+  .doc-list {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    border-top: var(--line-width) solid var(--line);
+  }
+  .doc {
+    padding: 0.75rem 0;
+    border-bottom: var(--line-width) solid var(--line);
+  }
+  .doc__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    color: var(--blue-link);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    font-weight: 600;
+  }
+  .doc__link:hover {
+    text-decoration-thickness: 3px;
+  }
+  .doc__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+  }
+  .doc__date {
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+  }
+  .doc__flag {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    border: var(--line-width) solid var(--line);
+    padding: 0.05rem 0.4rem;
+  }
+  .doc__flag--warn {
+    color: var(--amber);
+    background: var(--amber-wash);
+    border-color: var(--amber);
+  }
+</style>

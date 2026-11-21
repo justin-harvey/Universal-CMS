@@ -23,12 +23,27 @@ This platform is assembled from the strongest patterns of two existing projects
 
 ## Status
 
-**M0 — Scaffold + schema + plan (this pass): DONE.**
+**M0 — Scaffold + schema + plan: DONE.**
 Buildable Astro skeleton, full Supabase schema (0001–0005), `site.config.ts`
 seam, ported a11y tokens + audit gates + keep-alive, Studio auth/health shell,
 classifier + intents, three Netlify functions (document redirect complete; undo
 complete; inbound-email full flow with M4-finish TODOs), setup/invite/materialize
 scripts, README, this plan.
+
+**M2 — Materialize + public render: DONE.**
+All five collections render as static pages: home (pinned + recent
+announcements with expiry drop-off, next upcoming events), `/events`
+(upcoming + past, cancelled kept visible/struck-through with a status label,
+timezone-aware times via `src/lib/format.ts`), `/documents` (grouped by the
+config category order, links to the `/documents/file/<slug>` redirect, a11y
+image-only flag surfaced), `/groups` (label from `site.groupLabel`), and
+`/faq` index + generated `/faq/<slug>` detail pages. Ported `SiteHeader`
+(token-driven nav, `aria-current`) and `SiteFooter` (contact/hours/external
+links) from Hope-Maine into `src/components/`. Builds clean both empty (fresh
+clone, 6 pages) and with content (verified against fixtures matching the
+materialize output, 7 pages). Fixed a latent M0 bug: the `documents` schema
+declared a reserved `slug` field (Astro derives slug from the filename) — now
+uses `entry.slug`.
 
 ## Milestones
 
@@ -36,15 +51,31 @@ Each milestone is a small, shippable step (the way Justin's other projects run).
 Check them off as they land.
 
 - [x] **M0 — Scaffold, schema, plan.** Repo builds offline; migrations written.
-- [ ] **M1 — Provision + prove the spine.** Create the Supabase project, run
-  0001–0005, `npm run setup`, `npm run invite you@… admin`, sign in at `/studio`,
-  confirm the health strip is green and RLS denies anon. Drop a hero image.
-- [ ] **M2 — Materialize + public render (M6 of the old sketch, pulled early).**
-  Build the public pages that read the five materialized collections:
-  home (pinned + recent announcements, upcoming events), `/events` (cancelled
-  events stay visible, struck-through), `/documents` (categories + the
-  `/documents/file/<slug>` links + a11y flag), `/groups`, `/faq/<slug>`.
-  Port Hope-Maine's `SiteHeader`/`SiteFooter`. `npm run build` bakes real content.
+- [x] **M1 — Provision + prove the spine. COMPLETE** (admin signed into `/studio`
+  locally via magic link, health strip confirmed GREEN 2026-11-20). Server-side:
+  Supabase project
+  `paxzhcvixybqvkrvrnnc` (us-east-2, PG17) linked via CLI; migrations 0001–0006
+  pushed (`supabase db push --remote`); both buckets present (media public,
+  documents private); `deploy_control` seeded (id=1, debounce 60s, hook null);
+  RLS proven (service_role reads a row anon cannot see; anon writes denied);
+  auth redirect allow-list set to `http://localhost:4321/**`; admin invite sent
+  to deanburke10@gmail.com and its `editors` admin row created; `npm run build`
+  materializes against the live DB (0 published, builds clean). **Added
+  0006_grants.sql** — the 0001–0005 scaffold relied on Supabase default
+  privileges that newer projects don't grant, so every table read failed
+  "permission denied" until DML was granted explicitly to the API roles.
+  Local-test recipe (for future admins): `nvm use 22 && npm run dev`, then open a
+  magic link that redirects to `http://localhost:4321/studio` IN A BROWSER ON THE
+  SAME MACHINE (the link targets localhost; it 404s/"can't be reached" if the dev
+  server is down or the link is opened on another device). Mint a fresh link
+  without email via `supabase.auth.admin.generateLink({type:'magiclink',email,
+  options:{redirectTo}})` with the service key — invite tokens are single-use.
+  Optional leftover: drop a hero image in `public/`.
+- [x] **M2 — Materialize + public render.** Home / `/events` / `/documents` /
+  `/groups` / `/faq` + `/faq/<slug>` read the five materialized collections;
+  `SiteHeader`/`SiteFooter` ported; timezone-aware event times; cancelled
+  events struck-through; document a11y flag surfaced. Builds clean empty and
+  with content.
 - [ ] **M3 — Publish → rebuild live.** Create a Netlify build hook, store it in
   `deploy_control.hook_url`, wire the Studio "Deploy now" button to
   `request_deploy()`. Confirm a publish triggers a rebuild (debounced).

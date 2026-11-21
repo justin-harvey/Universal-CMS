@@ -1,0 +1,107 @@
+---
+// Site footer. Ported in spirit from Hope-Maine's SiteFooter: contact block,
+// office hours, and any external links the org points at (donate / volunteer /
+// newsletter are links, never built-in features — PRD §5). All values come from
+// site.config.ts; a null contact office or null link simply drops out.
+import { site, siteDisplayName } from "@config";
+
+const links = [
+  { href: site.externalLinks.donate, label: "Donate" },
+  { href: site.externalLinks.volunteer, label: "Volunteer" },
+  { href: site.externalLinks.newsletter, label: "Newsletter" },
+].filter((l): l is { href: string; label: string } => Boolean(l.href));
+
+const c = site.contact;
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <section class="site-footer__block" aria-labelledby="footer-contact">
+      <h2 id="footer-contact" class="site-footer__heading">Contact</h2>
+      <p class="site-footer__name">{siteDisplayName}</p>
+      {c.officeName && (
+        <p>
+          {c.officeName}<br />
+          {c.addressLine}<br />
+          {c.cityStateZip}
+        </p>
+      )}
+      {c.phone && (
+        <p><a class="prose-link" href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}>{c.phone}</a></p>
+      )}
+      {c.email && (
+        <p><a class="prose-link" href={`mailto:${c.email}`}>{c.email}</a></p>
+      )}
+    </section>
+
+    {c.officeHours?.length > 0 && (
+      <section class="site-footer__block" aria-labelledby="footer-hours">
+        <h2 id="footer-hours" class="site-footer__heading">Hours</h2>
+        {c.officeHours.map((h) => (
+          <p>{h.days}: {h.hours}</p>
+        ))}
+      </section>
+    )}
+
+    {links.length > 0 && (
+      <section class="site-footer__block" aria-labelledby="footer-links">
+        <h2 id="footer-links" class="site-footer__heading">More</h2>
+        <ul class="site-footer__links">
+          {links.map((l) => (
+            <li><a class="prose-link" href={l.href}>{l.label}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+
+  <p class="site-footer__legal">© {year} {siteDisplayName}</p>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: var(--line-width-strong) solid var(--line-strong);
+    background: var(--surface-1);
+    margin-top: 3rem;
+  }
+  .site-footer__inner {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 2rem 1.25rem 1rem;
+    display: grid;
+    gap: 1.5rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  }
+  .site-footer__heading {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+  }
+  .site-footer__block p {
+    margin: 0 0 0.4rem;
+    color: var(--ink-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  .site-footer__name {
+    color: var(--ink) !important;
+    font-weight: 700;
+  }
+  .site-footer__links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .site-footer__legal {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 0.5rem 1.25rem 1.5rem;
+    color: var(--ink-muted);
+    font-size: 0.875rem;
+  }
+</style>

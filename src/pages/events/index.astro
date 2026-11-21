@@ -1,0 +1,132 @@
+---
+// Events page (M2). Upcoming events first (soonest first), then past events
+// (most recent first). Cancelled events STAY visible and are struck-through
+// with a clear status label — people need to know an event was called off, not
+// find it silently gone. Rescheduled events carry a label too. Static build.
+import Base from "@/layouts/Base.astro";
+import { getCollection } from "astro:content";
+import { formatEventWhen, isPast } from "@/lib/format";
+
+const all = await getCollection("events");
+const rendered = await Promise.all(
+  all.map(async (e) => ({
+    data: e.data,
+    Content: (await e.render()).Content,
+    past: isPast(e.data.starts_at),
+  }))
+);
+
+const upcoming = rendered
+  .filter((e) => !e.past)
+  .sort((a, b) => a.data.starts_at.localeCompare(b.data.starts_at));
+const past = rendered
+  .filter((e) => e.past)
+  .sort((a, b) => b.data.starts_at.localeCompare(a.data.starts_at));
+
+const statusLabel: Record<string, string> = {
+  cancelled: "Cancelled",
+  rescheduled: "Rescheduled",
+};
+---
+
+<Base title="Events" description="Upcoming and past events.">
+  <h1>Events</h1>
+
+  <section aria-labelledby="upcoming">
+    <h2 id="upcoming">Upcoming</h2>
+    {upcoming.length === 0 ? (
+      <p class="empty">No upcoming events are scheduled right now.</p>
+    ) : (
+      <ul class="event-list">
+        {upcoming.map(({ data, Content }) => (
+          <li class={`event panel ${data.status === "cancelled" ? "event--cancelled" : ""}`}>
+            {statusLabel[data.status] && (
+              <p class={`event__status event__status--${data.status}`}>{statusLabel[data.status]}</p>
+            )}
+            <p class="event__when">{formatEventWhen(data.starts_at, data.ends_at)}</p>
+            <h3 class="event__title">{data.title}</h3>
+            {data.location && <p class="event__loc">{data.location}</p>}
+            <div class="rich-text"><Content /></div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+
+  {past.length > 0 && (
+    <section aria-labelledby="past">
+      <h2 id="past">Past</h2>
+      <ul class="event-list">
+        {past.map(({ data }) => (
+          <li class={`event event--past ${data.status === "cancelled" ? "event--cancelled" : ""}`}>
+            {statusLabel[data.status] && (
+              <span class={`event__status event__status--${data.status}`}>{statusLabel[data.status]}</span>
+            )}
+            <p class="event__when">{formatEventWhen(data.starts_at, data.ends_at)}</p>
+            <p class="event__title">{data.title}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Base>
+
+<style>
+  .empty {
+    color: var(--ink-muted);
+  }
+  .event-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+  .event.panel {
+    padding: 1rem 1.25rem;
+  }
+  .event--past {
+    padding: 0.75rem 0;
+    border-bottom: var(--line-width) solid var(--line);
+  }
+  .event__status {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    margin: 0 0 0.4rem;
+  }
+  .event__status--cancelled {
+    background: var(--red-wash);
+    color: var(--red);
+    border-left: 4px solid var(--red);
+  }
+  .event__status--rescheduled {
+    background: var(--amber-wash);
+    color: var(--amber);
+    border-left: 4px solid var(--amber);
+  }
+  /* Struck-through reinforces "cancelled" beyond the colour/label. */
+  .event--cancelled .event__when,
+  .event--cancelled .event__title {
+    text-decoration: line-through;
+    color: var(--ink-muted);
+  }
+  .event__when {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+  }
+  .event__title {
+    margin: 0.1rem 0 0.25rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+  .event__loc {
+    margin: 0 0 0.5rem;
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+  }
+</style>

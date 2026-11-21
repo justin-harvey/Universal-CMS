@@ -1,0 +1,2 @@
+# Build artifact dir: materialize.mjs writes <slug>.md here from Supabase.
+# Committed empty so Astro does not warn on a missing collection directory.

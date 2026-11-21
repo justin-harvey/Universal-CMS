@@ -1,0 +1,43 @@
+---
+// FAQ index (M2). Lists every published question in the editor-set sort order,
+// each linking to its own /faq/<slug> page (the answer can be long-form, and a
+// stable per-question URL is linkable and shareable). Static build.
+import Base from "@/layouts/Base.astro";
+import { site } from "@config";
+import { getCollection } from "astro:content";
+
+const faqs = (await getCollection("faqs")).sort((a, b) => {
+  const s = (a.data.sort_order ?? 100) - (b.data.sort_order ?? 100);
+  return s !== 0 ? s : a.data.question.localeCompare(b.data.question);
+});
+---
+
+<Base title="FAQ" description={`Frequently asked questions about ${site.name}.`}>
+  <h1>Frequently asked questions</h1>
+
+  {faqs.length === 0 ? (
+    <p class="empty">No questions have been published yet.</p>
+  ) : (
+    <ul class="task-list faq-list">
+      {faqs.map((f) => (
+        <li>
+          <a class="task-row" href={`/faq/${f.slug}`}>
+            <span>{f.data.question}</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>
+
+<style>
+  .empty {
+    color: var(--ink-muted);
+  }
+  .faq-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+</style>

@@ -1,0 +1,29 @@
+---
+// FAQ detail (M2). One static page per published question, generated from the
+// materialized `faqs` collection. The answer is the markdown body. A fresh
+// clone with no content generates no pages here (getStaticPaths returns []).
+import Base from "@/layouts/Base.astro";
+import { getCollection, type CollectionEntry } from "astro:content";
+
+export async function getStaticPaths() {
+  const faqs = await getCollection("faqs");
+  return faqs.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+
+type Props = { entry: CollectionEntry<"faqs"> };
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+
+<Base title={entry.data.question} description={entry.data.question}>
+  <p class="breadcrumb"><a class="prose-link" href="/faq">← All questions</a></p>
+  <h1>{entry.data.question}</h1>
+  <div class="rich-text"><Content /></div>
+</Base>
+
+<style>
+  .breadcrumb {
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+  }
+</style>

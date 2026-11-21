@@ -15,7 +15,7 @@
 // builds. Set the env to bake real content.
 
 import { createClient } from '@supabase/supabase-js';
-import { rm, mkdir, writeFile } from 'node:fs/promises';
+import { rm, mkdir, writeFile, readdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -80,8 +80,14 @@ async function main() {
 
   for (const [name, spec] of Object.entries(COLLECTIONS)) {
     const dir = join(CONTENT, name);
-    await rm(dir, { recursive: true, force: true });
+    // Clear previously materialized markdown but keep the directory and its
+    // committed .gitkeep, so a repo clone keeps non-empty collection folders
+    // (Astro warns on a missing collection dir) and the working tree stays
+    // clean after a build. Only *.md (what we write) is removed.
     await mkdir(dir, { recursive: true });
+    for (const f of await readdir(dir)) {
+      if (f.endsWith('.md')) await rm(join(dir, f), { force: true });
+    }
 
     const { data, error } = await db.from(name).select('*').eq(spec.pubCol, 'published');
     if (error) throw new Error(`${name}: ${error.message}`);
