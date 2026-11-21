@@ -82,13 +82,30 @@ Check them off as they land.
   store the Netlify *build hook* URL in `deploy_control.hook_url` so a content
   publish (not just a git push) triggers a debounced rebuild — until it's set,
   the trigger and the button's RPC are safe no-ops ("No build hook set yet.").
-- [ ] **M4 — Email-to-publish end to end.** Stand up Postmark Inbound → the
-  webhook. Finish the two TODOs in `inbound-email.ts`: (a) upload PDF attachments
-  to the private `documents` bucket + create the documents row with the
-  accessibility gate; (b) mint the undo token and send the receipt + signed undo
-  link via an outbound mailer (reuse `~/mail-portal`'s nodemailer relay, or
-  Postmark outbound). Add the admin notification + polite auto-replies. Send a
-  real email from an `approved_senders` address and watch it publish.
+- [x] **M4 — Email-to-publish end to end. CODE DONE** (2026-11-20; strict
+  typecheck clean, build clean, helper logic runtime-checked). The two
+  `inbound-email.ts` TODOs are finished and the webhook is a full pipeline:
+  (a) **documents path** — PDF attachments upload to the private `documents`
+  bucket (one `documents` row per PDF) with the Hope-Maine accessibility gate via
+  a new dependency-free `src/lib/pdf-text.ts` (`pdfAccessibility` → `has_text` /
+  `image_only` / `not_checked`, zlib-inflates FlateDecode streams); (b) **undo +
+  receipts** — `publish()` mints a single-use `undo_tokens` row and emails the
+  sender a receipt with the live URL + `/undo?token=` link via a new
+  `src/lib/mailer.ts` (Postmark outbound REST, graceful no-op when unconfigured,
+  stamps `Auto-Submitted: auto-replied` + `X-Auto-Response-Suppress: All`).
+  Added: polite reject auto-reply, held-for-review sender ack + admin
+  notification, auto-reply loop drop (ignore `Auto-Submitted` / Out-of-Office),
+  spoof drop (SPF+DKIM both fail), unknown-sender drop (no queue row), softened
+  attachment screening (reject only when nothing actionable; 15 MB PDF cap), and
+  a 10/hour auto-publish rate cap. The classifier (`classify.ts`/`intents.ts`)
+  now emits all **6 intents** (added `document` + `unknown`) with an enriched
+  payload (summary/category/eventStatus/expiresAt/pinned), matching the DB enum +
+  the M5 Studio map. **Remaining to call M4 fully shipped:** stand up a Postmark
+  Inbound server pointed at `/api/inbound-email?token=…`, set the outbound env
+  (`POSTMARK_SERVER_TOKEN`, `MAIL_FROM`, `SITE_NAME`, `ADMIN_NOTIFY_ADDRESS`,
+  `UNDO_WINDOW_HOURS`), and send a real email from an `approved_senders` address
+  end to end. Bumped `@anthropic-ai/sdk` 0.68 → 1.12 so the canonical
+  `output_config.format` structured-output call type-checks.
 - [x] **M5 — Full Studio CRUD + review queue. DONE** (2026-11-20, build clean,
   Studio client bundle emitted + helper logic unit-checked). Data-driven editors
   for all five collections (list / create / edit / delete / publish-unpublish)

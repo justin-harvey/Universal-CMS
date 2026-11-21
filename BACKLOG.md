@@ -8,16 +8,32 @@ decisions to revisit, and known gaps that don't belong to a single milestone.
 Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune the rest).
 
 ## Open — pipeline finish (M4)
-- [ ] inbound-email.ts TODO (a): upload PDF attachment to the private `documents`
-  bucket + create a `documents` row; carry the Hope-Maine accessibility-check gate
-  (`accessibility_checked`: not_checked|has_text|image_only) at ingest time.
-- [ ] inbound-email.ts TODO (b): mint undo token (random → store sha256 in
-  `undo_tokens`, expires = now + `site.config.email.undoWindowHours`) and send the
-  publish receipt + signed `/undo?token=` link.
-- [ ] Outbound mailer not wired. Decide: reuse `~/mail-portal` (Proton SMTP relay,
-  nodemailer) vs Postmark outbound (`POSTMARK_SERVER_TOKEN`). Needed for receipts,
-  polite reject auto-replies, and the admin pending-review notification.
-- [ ] Admin notification on `pending_review` → `site.config.email.adminNotifyAddress`.
+- [x] inbound-email.ts TODO (a) DONE: PDF attachments upload to the private
+  `documents` bucket (one row per PDF) with the accessibility gate via the new
+  dependency-free `src/lib/pdf-text.ts` (`pdfAccessibility`, zlib-inflates
+  FlateDecode streams; runtime-checked has_text/image_only/not_checked).
+- [x] inbound-email.ts TODO (b) DONE: mints a single-use `undo_tokens` row
+  (sha256, expires = now + `UNDO_WINDOW_HOURS`) and emails the receipt + signed
+  `/undo?token=` link.
+- [x] Outbound mailer DECIDED + wired = **Postmark outbound** (`POSTMARK_SERVER_TOKEN`
+  + `MAIL_FROM`) in new `src/lib/mailer.ts` — one provider with inbound, no new
+  dep (uses `fetch`), graceful no-op when unconfigured. (Dropped the `~/mail-portal`
+  SMTP option.) Covers receipt, polite reject auto-reply, held-sender ack, admin
+  notify — all stamped with the loop-prevention headers.
+- [x] Admin notification on hold → `ADMIN_NOTIFY_ADDRESS` env (mirrors
+  site.config.email.adminNotifyAddress). DONE.
+- [ ] **M4 is CODE-complete but not live.** To finish: create a Postmark Inbound
+  server/webhook pointed at `/api/inbound-email?token=<POSTMARK_WEBHOOK_TOKEN>`,
+  verify SPF/DKIM pass-through on that server, set the outbound env on Netlify
+  (`POSTMARK_SERVER_TOKEN`, `MAIL_FROM`, `SITE_NAME`, `ADMIN_NOTIFY_ADDRESS`,
+  `UNDO_WINDOW_HOURS`), add a sender to `approved_senders`, and send one real
+  email end to end (plus one with a PDF, and one low-confidence/`unknown` to see
+  the queue + admin notify).
+- [ ] **Approve-prefill enrichment:** the Studio approve flow + the webhook fill
+  title/body from subject/raw_text but don't yet read `classifier_json`'s parsed
+  fields (event start time, category, pin). Wire those through once real
+  classifier output is observed. Also the classifier `category` is free-text — it
+  won't necessarily match `site.documentCategories`; map/validate later.
 
 ## Open — repo plumbing
 - [ ] Keep-alive GitHub Action lives at `ops/github-workflows/supabase-keepalive.yml`
@@ -117,9 +133,32 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   (leftover from ebneo); now exports `MEDIA_BUCKET`/`DOCUMENTS_BUCKET` matching
   0005_storage.sql.
 
+## Open — email pipeline / findings (from M4)
+- [ ] **Pre-existing type nit in `netlify/functions/document.ts`** (not touched
+  this pass): strict `tsc` flags its conditional `headers` object (`Cache-Control`
+  sometimes `undefined`). Harmless — neither `astro build` nor Netlify's esbuild
+  function bundler type-checks functions, so it never blocks build/deploy. Fix
+  by always setting a string (or widening the return type) if we ever add a
+  functions typecheck to CI.
+- [ ] **SPF/DKIM policy softened** vs the old code: now only drops when BOTH fail
+  (spoof); a single failure (common with forwarders) is allowed through and stays
+  visible on the `inbound_emails` row. Tighten if spam gets through.
+- [ ] **Images not supported inbound.** Spec allows jpeg/png/webp; our content
+  model has no image collection, so only `application/pdf` is accepted (others
+  are "unsupported"). Add an image path if a use case appears.
+- [ ] **Multi-PDF document emails** create one `documents` row per PDF but the
+  undo token + `inbound_emails.target_id` point at only the first. Fine for the
+  common single-attachment case; revisit if batch-PDF emails are common.
+- [ ] Rate cap (10 auto-publishes/hour) + undo window (24h) are env-tunable
+  (`UNDO_WINDOW_HOURS`); the cap is a constant in `inbound-email.ts` — promote to
+  env if it needs per-deploy tuning.
+
 ## Decisions to revisit
-- [ ] Classifier model = `claude-opus-4-8`. Revisit `claude-haiku-4-5` for cost
-  once volume is known (one-line change in `src/lib/classify.ts`).
+- [ ] Classifier model = `claude-opus-4-8` (SDK bumped 0.68 → 1.12 so the
+  canonical `output_config.format` structured-output call type-checks). Revisit
+  `claude-haiku-4-5` for cost once volume is known (one-line change in
+  `src/lib/classify.ts`). Keep Claude — do NOT adopt the spec's gpt-4o-mini /
+  claude-3-5-haiku suggestion (`claude-3-5-haiku` is an older id).
 - [ ] Multi-tenant: `to_alias` is captured but routing is not honored (M7). Default
   assumption today = one deploy per tenant; confirm before building aliases.
 - [ ] Node engines pinned `>=20`; local dev was Node 18 and still builds. Keep 22 on
@@ -128,6 +167,13 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   (this is a content CMS, not a ledger) — no Merkle checkpoint needed.
 
 ## Done (recent)
+- [x] Intent fix + M4 email pipeline (2026-11-20): classifier → 6 intents
+  (`document`+`unknown`) with enriched payload; `inbound-email.ts` rewritten into
+  a full webhook (documents upload + accessibility gate, undo token, Postmark
+  receipts/rejects/admin-notify with loop-prevention headers, spoof/unknown drops,
+  rate cap); new `src/lib/pdf-text.ts` + `src/lib/mailer.ts`; `.env.example`
+  expanded; `@anthropic-ai/sdk` 0.68 → 1.12. Strict typecheck + build clean;
+  helpers runtime-checked. Not yet live (needs Postmark Inbound + env).
 - [x] M5 Studio CRUD + Email queue (2026-11-20): new modules
   `src/components/studio/collections.js` (field specs + coercion/slug/datetime
   helpers) and a rewritten `StudioApp.jsx` (CollectionManager/CollectionForm/
