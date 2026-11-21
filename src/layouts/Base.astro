@@ -1,0 +1,83 @@
+---
+// Base layout. Wires the ported Hope-Maine accessibility design system
+// (tokens -> primitives -> patterns) and the no-JavaScript-required, high-
+// contrast, keyboard-first shell every public page inherits. Nothing here
+// depends on the database at runtime: these are static pages.
+import "@/styles/tokens.css";
+import "@/styles/primitives.css";
+import "@/styles/patterns.css";
+import { site, siteDisplayName } from "@config";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+const pageTitle = title ? `${title} · ${site.name}` : siteDisplayName;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={new URL(Astro.url.pathname, site.siteUrl)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <a href="/" class="site-header__brand">{site.name}</a>
+    </header>
+    <main id="main" class="site-main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p>{siteDisplayName}</p>
+      {site.contact.officeName && (
+        <p>{site.contact.officeName} · {site.contact.addressLine} · {site.contact.cityStateZip}</p>
+      )}
+    </footer>
+  </body>
+</html>
+
+<style>
+  /* Minimal shell styling; the design tokens carry colour/contrast. The full
+     header/footer components are an M6 port from Hope-Maine's SiteHeader. */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+  }
+  .skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+    z-index: 10;
+    background: var(--focus-yellow);
+    color: var(--focus-ink);
+    padding: 0.5rem 0.75rem;
+  }
+  .site-header {
+    background: var(--navy);
+    color: var(--ink-inverse);
+    padding: 1rem 1.25rem;
+  }
+  .site-header__brand {
+    color: var(--ink-inverse);
+    font-weight: 700;
+    font-size: 1.25rem;
+    text-decoration: none;
+  }
+  .site-main {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 2rem 1.25rem;
+  }
+  .site-footer {
+    border-top: var(--line-width-strong) solid var(--line-strong);
+    padding: 1.5rem 1.25rem;
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+  }
+</style>

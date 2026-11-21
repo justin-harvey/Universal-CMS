@@ -1,0 +1,20 @@
+---
+// /studio — the admin SPA mount point. Rendered client:only so no secret is in
+// the static HTML; the React bundle reads the PUBLIC anon key + magic-link
+// session and is gated entirely by Supabase RLS.
+import StudioApp from "@/components/studio/StudioApp.jsx";
+import { site } from "@config";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Studio{site.adminTitleSuffix}</title>
+  </head>
+  <body>
+    <StudioApp client:only="react" inboundAddress={site.email.inboundAddress} />
+  </body>
+</html>

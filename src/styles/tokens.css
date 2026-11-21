@@ -1,0 +1,70 @@
+/* ─────────────────────────────────────────────────────────────
+   Municipal Site — Design Tokens
+   Radical Functionalism, after GOV.UK / USWDS / Système de Design.
+   Institutional authority, bulletproof contrast, zero ornament.
+
+   Every text pair below is checked against its intended background.
+   Ratios noted inline; body-size pairs target WCAG AAA (7:1).
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Ink ──────────────────────────────────────────────────
+     Slate black, not pure black: softer on bright canvases while
+     holding ~19:1 on white. */
+  --ink: #0b0c0c;              /* 19.2:1 on white  — body + headings */
+  --ink-muted: #414852;        /*  9.2:1 white · 8.3:1 on either grey band */
+  --ink-inverse: #ffffff;
+
+  /* ── Institutional ────────────────────────────────────────
+     Deep navy carries authority: masthead, footer, primary action. */
+  --navy: #1b365d;             /* white on navy = 10.4:1 */
+  --navy-dark: #12243d;        /* hover / pressed */
+
+  /* ── Action ───────────────────────────────────────────────
+     Royal blue for interactive affordance. The link tone is a
+     step darker than the fill tone so body-size links clear AAA. */
+  --blue-link: #1a4480;        /*  8.6:1 on white — text links */
+  --blue: #005ea2;             /*  6.5:1 on white — fills, rules, icons */
+  --blue-wash: #e1f3f8;        /* informational surface */
+
+  /* ── Canvas & surfaces ────────────────────────────────────
+     Stark white plus two cool greys. Surfaces are separated by
+     lines, never by shadow. */
+  --canvas: #ffffff;
+  --surface-1: #f3f2f1;        /* warm-neutral band */
+  --surface-2: #f0f4f8;        /* cool band */
+
+  /* ── Lines ────────────────────────────────────────────────
+     Structure is drawn, not floated. */
+  --line: #b1b4b6;             /* 1px default rule */
+  --line-strong: #0b0c0c;      /* 2px emphasis rule */
+  --line-width: 1px;
+  --line-width-strong: 2px;
+  --line-width-accent: 0.625rem; /* 10px left bar on notices */
+
+  /* ── Status ───────────────────────────────────────────────
+     State is always carried by an icon, a label, and a border —
+     never by color alone. */
+  --red: #a10808;              /*  8.2:1 white · 7.1:1 on its own wash */
+  --red-wash: #fdeaea;
+  --green: #005c31;            /*  8.2:1 white · 7.1:1 on its own wash */
+  --green-wash: #e3f2ea;
+  --amber: #6b4700;            /*  8.3:1 white · 7.6:1 on its own wash */
+  --amber-wash: #fff5d6;
+
+  /* ── Focus ────────────────────────────────────────────────
+     High-vis yellow behind, solid black underline beneath. Visible
+     against every surface in the palette. */
+  --focus-yellow: #ffdd00;
+  --focus-ink: #0b0c0c;
+  --focus-width: 4px;
+
+  /* ── Metrics ──────────────────────────────────────────────── */
+  --tap-min: 2.75rem;          /* 44px minimum touch target */
+  --measure: 66ch;             /* 60–75 character line length */
+  --radius: 0;                 /* stark geometry: no rounding */
+
+  --font-sans: var(--font-public-sans);
+
+  color-scheme: light;
+}

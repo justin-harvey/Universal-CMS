@@ -1,0 +1,174 @@
+/* ─────────────────────────────────────────────────────────────
+   Municipal Site — Primitives
+   Base reset, one type scale, focus, and measure. Single family
+   (Public Sans): high x-height, open apertures, legible at small
+   sizes on low-resolution screens.
+   ───────────────────────────────────────────────────────────── */
+
+/* Base rules MUST stay inside @layer base. Unlayered CSS outranks every
+   layered rule, so an unlayered `a { color: inherit }` would silently beat
+   Tailwind's `text-*` utilities and strip color from every link. */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 1.125rem; /* 18px base — generous for civic reading */
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--focus-yellow);
+    color: var(--focus-ink);
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary {
+    font: inherit;
+    color: inherit;
+  }
+}
+
+/* ── Focus: high-vis yellow block + solid black underline ─────
+   The GOV.UK pattern. Impossible to miss, and legible on light
+   surfaces, dark surfaces, and images alike. */
+
+:focus {
+  outline: 3px solid transparent;
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus-yellow);
+  outline-offset: 0;
+  box-shadow: 0 var(--focus-width) 0 0 var(--focus-ink);
+  background-color: var(--focus-yellow);
+  color: var(--focus-ink);
+  text-decoration: none;
+}
+
+/* Filled controls keep their own fill; the ring alone marks focus. */
+.focus-ring-only:focus-visible {
+  background-color: inherit;
+  color: inherit;
+  box-shadow:
+    0 0 0 var(--focus-width) var(--focus-yellow),
+    0 0 0 calc(var(--focus-width) * 2) var(--focus-ink);
+  outline: none;
+}
+
+/* ── Type scale ───────────────────────────────────────────────
+   A rigid ratio. Headings are weight and size only — never a
+   second typeface, never a decorative treatment. */
+
+@utility heading-xl {
+  font-size: clamp(2.125rem, 1.6rem + 2.2vw, 3rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+@utility heading-lg {
+  font-size: clamp(1.625rem, 1.35rem + 1.2vw, 2.125rem);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+@utility heading-md {
+  font-size: 1.375rem;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+@utility heading-sm {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+@utility body-lg {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+@utility body {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+@utility body-sm {
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+@utility body-xs {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Uppercase eyebrow. Wide tracking keeps small caps legible. */
+@utility overline {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Measure ──────────────────────────────────────────────────
+   Prose is capped at 60–75 characters. */
+
+@utility measure {
+  max-width: var(--measure);
+}
+
+/* ── Link styling ─────────────────────────────────────────────
+   Links are underlined in body copy — never signalled by color
+   alone. The underline thickens on hover. */
+
+.prose-link {
+  color: var(--blue-link);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+.prose-link:hover {
+  text-decoration-thickness: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

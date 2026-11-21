@@ -1,0 +1,39 @@
+# Netlify build + functions config.
+#
+# Build bakes content (materialize) then builds the static site + Pagefind index.
+# Required build env (set in the Netlify UI, NOT committed):
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY   -> materialize reads published content
+#   PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY -> inlined into the Studio bundle
+#   PUBLIC_SITE_URL                           -> canonical origin
+# Function-only env (never PUBLIC_*):
+#   ANTHROPIC_API_KEY                         -> the email classifier
+#   POSTMARK_WEBHOOK_TOKEN, POSTMARK_SERVER_TOKEN -> inbound verify + outbound receipts
+#   UNDO_SIGNING_SECRET                       -> signs the one-click undo links
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Stable, permanent document URLs. The function 302s to a short-lived signed URL
+# minted from the private `documents` bucket, so the public link never changes
+# and the file can't be scraped by guessing storage paths (PRD §2).
+[[redirects]]
+  from = "/documents/file/*"
+  to = "/.netlify/functions/document?slug=:splat"
+  status = 200
+
+# Postmark posts parsed inbound mail here.
+[[redirects]]
+  from = "/api/inbound-email"
+  to = "/.netlify/functions/inbound-email"
+  status = 200
+
+# One-click signed Undo / Unpublish link from the publish receipt.
+[[redirects]]
+  from = "/undo"
+  to = "/.netlify/functions/undo"
+  status = 200

@@ -1,0 +1,287 @@
+/* ─────────────────────────────────────────────────────────────
+   Municipal Site — Patterns
+   Repeated compositions. Structure is drawn with solid rules;
+   there are no shadows, gradients, or translucency anywhere.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Panel ────────────────────────────────────────────────────
+   The one container. A 1px rule on white; nothing floats. */
+
+.panel {
+  border: var(--line-width) solid var(--line);
+  background: var(--canvas);
+}
+
+.panel-strong {
+  border: var(--line-width-strong) solid var(--line-strong);
+  background: var(--canvas);
+}
+
+/* ── Notice ───────────────────────────────────────────────────
+   A thick left bar carries the status. Color is reinforced by an
+   icon and a text label, never used on its own. */
+
+.notice {
+  border-left: var(--line-width-accent) solid var(--line-strong);
+  background: var(--surface-1);
+}
+
+.notice-info {
+  border-left-color: var(--blue);
+  background: var(--blue-wash);
+}
+
+.notice-warning {
+  border-left-color: var(--amber);
+  background: var(--amber-wash);
+}
+
+.notice-danger {
+  border-left-color: var(--red);
+  background: var(--red-wash);
+}
+
+.notice-success {
+  border-left-color: var(--green);
+  background: var(--green-wash);
+}
+
+/* ── Task list ────────────────────────────────────────────────
+   Task-first routing: a stacked list of destinations, each a full
+   44px+ row with a rule between. Reads as a table of services
+   rather than a grid of marketing cards. */
+
+.task-list {
+  border-top: var(--line-width) solid var(--line);
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: var(--tap-min);
+  padding: 0.875rem 0;
+  border-bottom: var(--line-width) solid var(--line);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+  color: var(--blue-link);
+}
+
+.task-row:hover {
+  background: var(--surface-2);
+  text-decoration-thickness: 3px;
+}
+
+/* Boxed variant for a two-column service grid. */
+.task-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: var(--tap-min);
+  padding: 0.875rem 1rem;
+  border: var(--line-width) solid var(--line);
+  color: var(--blue-link);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+.task-tile:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+  text-decoration-thickness: 3px;
+}
+
+/* ── Data list ────────────────────────────────────────────────
+   Label/value rows, ruled. Used for profiles and contact blocks. */
+
+.data-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  padding: 0.75rem 0;
+  border-bottom: var(--line-width) solid var(--line);
+}
+
+.data-row:last-child {
+  border-bottom: 0;
+}
+
+/* ── Section band ─────────────────────────────────────────────
+   Alternating bands separate sections without shadow or card. */
+
+.band {
+  background: var(--surface-1);
+  border-top: var(--line-width) solid var(--line);
+  border-bottom: var(--line-width) solid var(--line);
+}
+
+.band-cool {
+  background: var(--surface-2);
+  border-top: var(--line-width) solid var(--line);
+  border-bottom: var(--line-width) solid var(--line);
+}
+
+/* ── Rich text ────────────────────────────────────────────────
+   Output from the CMS editor. The editor deliberately offers only
+   paragraphs, h2/h3, bold, italic, lists, and links, so this is the
+   complete set of elements it can produce — anything else appearing
+   here means a feature was added to News.ts without a style to match.
+
+   Sizes track the body-sm / heading-sm utilities rather than being
+   invented, so an edited post is typographically identical to the
+   static content it replaced. */
+
+.rich-text {
+  display: grid;
+  gap: 0.75rem;
+  max-width: var(--measure);
+}
+
+.rich-text > * {
+  margin: 0;
+}
+
+.rich-text p,
+.rich-text li {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.rich-text h2 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 0.5rem;
+}
+
+.rich-text h3 {
+  font-size: 1rem;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 0.5rem;
+}
+
+.rich-text ul,
+.rich-text ol {
+  display: grid;
+  gap: 0.375rem;
+  padding-left: 1.5rem;
+}
+
+.rich-text ul { list-style: disc; }
+.rich-text ol { list-style: decimal; }
+
+.rich-text a {
+  color: var(--blue-link);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.rich-text a:hover {
+  text-decoration-thickness: 3px;
+}
+
+.rich-text strong {
+  font-weight: 700;
+}
+
+/* ── Carousel ─────────────────────────────────────────────────
+   A scroller first, a carousel second. The viewport is a real
+   scroll container with snap points, so it works by touch,
+   trackpad, and keyboard before any script loads — the buttons
+   only automate what the container already does.
+
+   Everything stays square and ruled: no shadow, no rounding, no
+   translucent overlay. The carousel is a different arrangement of
+   the same tiles, not a different design language. */
+
+.carousel {
+  display: grid;
+  gap: 1rem;
+}
+
+.carousel-viewport {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* Room for the focus ring, which sits outside the element box. */
+  padding: var(--focus-width);
+  margin: calc(var(--focus-width) * -1);
+  scrollbar-width: thin;
+}
+
+/* The list itself is the flex track. Laying the slides out with
+   `display: contents` on the <ul> would have been shorter and would have
+   cost the list its semantics in several screen readers, which is a poor
+   trade for one element. */
+.carousel-track {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The scrollbar is the only honest affordance for "there is more to the
+   right" before the buttons appear, so it stays visible rather than being
+   hidden for tidiness. */
+.carousel-viewport::-webkit-scrollbar {
+  height: 10px;
+}
+
+.carousel-viewport::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+}
+
+.carousel-viewport::-webkit-scrollbar-track {
+  background: var(--surface-2);
+}
+
+.carousel-slide {
+  flex: 0 0 auto;
+  width: min(20rem, 78vw);
+  scroll-snap-align: start;
+}
+
+.carousel-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.carousel-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Oversized targets are a house rule, and these are the controls most
+     likely to be pressed on a phone in one hand. */
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  border: var(--line-width) solid var(--line-strong);
+  background: var(--surface-1);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.carousel-button:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--ink-inverse);
+}
+
+.carousel-status {
+  margin-left: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel-viewport {
+    scroll-behavior: auto;
+  }
+}

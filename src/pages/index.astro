@@ -1,0 +1,37 @@
+---
+// Home page. In this scaffold it renders the site identity and intro from
+// site.config.ts so a fresh clone builds and shows something real. The
+// milestone build (M6) replaces this body with the published announcements /
+// upcoming events / latest documents read from the materialized content
+// collections — still 100% static, no runtime DB.
+import Base from "@/layouts/Base.astro";
+import { site } from "@config";
+---
+
+<Base title="Home" description={site.tagline}>
+  <h1>{site.name}</h1>
+  <p class="lede">{site.hero.intro}</p>
+
+  <section aria-labelledby="getting-started">
+    <h2 id="getting-started">This is the blank template</h2>
+    <p>
+      Edit <code>site.config.ts</code> (or run <code>npm run setup</code>) to make
+      this your organisation. Then publish content two ways:
+    </p>
+    <ul>
+      <li>Sign in to the <a href="/studio">Studio</a> with a magic link, or</li>
+      <li>Email it to <strong>{site.email.inboundAddress}</strong> from an approved address.</li>
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .lede {
+    font-size: 1.15rem;
+    color: var(--ink-muted);
+  }
+  code {
+    background: var(--surface-1);
+    padding: 0.1rem 0.3rem;
+  }
+</style>

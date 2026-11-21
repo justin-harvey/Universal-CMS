@@ -1,0 +1,39 @@
+{
+  "name": "mail-first-cms",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Email-first, accessible, static-first CMS. Passwordless Studio admin + email-to-publish pipeline over Supabase, baked to static and hosted on Netlify.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "materialize": "node scripts/materialize.mjs",
+    "build": "npm run materialize && astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "astro": "astro",
+    "setup": "node scripts/setup.mjs",
+    "invite": "node scripts/invite-editor.mjs",
+    "audit:a11y": "node tools/audit/a11y.mjs",
+    "audit:links": "node tools/audit/links.mjs",
+    "audit:nojs": "node tools/audit/nojs.mjs",
+    "audit": "npm run audit:a11y && npm run audit:links && npm run audit:nojs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "@astrojs/react": "^3.6.3",
+    "@supabase/supabase-js": "^2.118.0",
+    "astro": "^4.15.0",
+    "marked": "^18.1.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.8.1",
+    "@pagefind/linux-x64": "^1.5.2",
+    "@types/node": "^20",
+    "pagefind": "^1.5.2",
+    "playwright": "^1.62.1"
+  }
+}
