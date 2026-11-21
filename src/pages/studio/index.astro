@@ -15,6 +15,12 @@ import { site } from "@config";
     <title>Studio{site.adminTitleSuffix}</title>
   </head>
   <body>
-    <StudioApp client:only="react" inboundAddress={site.email.inboundAddress} />
+    <StudioApp
+      client:only="react"
+      inboundAddress={site.email.inboundAddress}
+      groupLabel={site.groupLabel}
+      documentCategories={site.documentCategories}
+      timezone={site.timezone}
+    />
   </body>
 </html>

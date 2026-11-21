@@ -1,9 +1,10 @@
 // Browser Supabase client for the /studio admin SPA.
 //
 // Uses the PUBLIC anon key only. This is safe in the browser: Row Level Security
-// denies anon all access to commentaries/editors; only an authenticated, invited
-// editor's JWT (obtained via magic link) unlocks reads/writes. The service-role
-// key is NEVER referenced here — it lives only in the Netlify build env.
+// denies anon all access to the content tables and editors; only an
+// authenticated, invited editor's JWT (obtained via magic link) unlocks
+// reads/writes. The service-role key is NEVER referenced here — it lives only in
+// the Netlify build env.
 //
 // Required public env (inlined at build by Astro):
 //   PUBLIC_SUPABASE_URL
@@ -24,4 +25,7 @@ export const supabase = supabaseConfigured
     })
   : null;
 
-export const FIGURES_BUCKET = 'figures';
+// Storage buckets (see supabase/migrations/0005_storage.sql): media is public-read
+// (hero/inline images), documents is private (served via a signed redirect route).
+export const MEDIA_BUCKET = 'media';
+export const DOCUMENTS_BUCKET = 'documents';

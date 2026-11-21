@@ -76,9 +76,12 @@ Check them off as they land.
   `SiteHeader`/`SiteFooter` ported; timezone-aware event times; cancelled
   events struck-through; document a11y flag surfaced. Builds clean empty and
   with content.
-- [ ] **M3 — Publish → rebuild live.** Create a Netlify build hook, store it in
-  `deploy_control.hook_url`, wire the Studio "Deploy now" button to
-  `request_deploy()`. Confirm a publish triggers a rebuild (debounced).
+- [x] **M3 — Publish → rebuild live.** Netlify connected and auto-deploying on
+  push (Justin, 2026-11-20). The Studio **"Deploy now"** button is wired to the
+  `request_deploy()` RPC (header, both collection and queue views). Remaining:
+  store the Netlify *build hook* URL in `deploy_control.hook_url` so a content
+  publish (not just a git push) triggers a debounced rebuild — until it's set,
+  the trigger and the button's RPC are safe no-ops ("No build hook set yet.").
 - [ ] **M4 — Email-to-publish end to end.** Stand up Postmark Inbound → the
   webhook. Finish the two TODOs in `inbound-email.ts`: (a) upload PDF attachments
   to the private `documents` bucket + create the documents row with the
@@ -86,11 +89,25 @@ Check them off as they land.
   link via an outbound mailer (reuse `~/mail-portal`'s nodemailer relay, or
   Postmark outbound). Add the admin notification + polite auto-replies. Send a
   real email from an `approved_senders` address and watch it publish.
-- [ ] **M5 — Full Studio CRUD + review queue.** Build the per-collection editors
-  (announcements/events/documents/groups/faqs) on the existing auth/RLS spine,
-  plus the **Email queue** tab (work `inbound_emails` where status=pending_review:
-  approve → publish, edit, discard). Guided first-login walkthrough + inline `?`
-  help (ebneo Studio patterns).
+- [x] **M5 — Full Studio CRUD + review queue. DONE** (2026-11-20, build clean,
+  Studio client bundle emitted + helper logic unit-checked). Data-driven editors
+  for all five collections (list / create / edit / delete / publish-unpublish)
+  driven by `src/components/studio/collections.js` — one field-spec per
+  collection, auto-slug from the title field, timezone-aware datetime inputs,
+  number/date/checkbox coercion in `toPayload`. **Documents** editor uploads the
+  PDF to the private `documents` bucket and sets `storage_path` + the
+  accessibility gate. **Email queue** tab works `inbound_emails`
+  (status=received/pending_review): *Approve → publish* opens the intent-mapped
+  collection's new-row form prefilled from the email (status preset to published,
+  `source='email'`), and on save closes out the inbound row
+  (status=published/target_table/target_id/reviewed_by); *Discard* sets
+  status=discarded. Queue tab carries a pending-count badge. An
+  **approved-senders** panel (admin-writable, editor-readable) sits under the
+  queue. **"Deploy now"** button in the header calls `request_deploy()`.
+  _Deferred:_ guided first-login walkthrough + inline `?` help, and the "Edit
+  before publish" distinct from Approve (Approve already opens an editable form,
+  so this is covered functionally). Live click-through still wants a manual pass
+  via the M1 magic-link recipe.
 - [ ] **M6 — Audit gates in CI.** Wire `npm run audit` (a11y/links/no-JS) into the
   Netlify build so a contrast regression, a sub-44px target, or a broken internal
   link fails the deploy. Update the audit `BASE_PAGES` to this site's routes.

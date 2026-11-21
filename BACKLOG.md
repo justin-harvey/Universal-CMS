@@ -43,16 +43,25 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   `sb_secret_…` and DB password were pasted in chat; rotate in Settings → API if
   desired and update `.env`. Node 22 is required for any supabase-js script
   (Node 18 lacks native WebSocket → realtime-js throws); use `nvm use 22`.
-- [ ] Netlify not connected; when it is, add the 5 env vars (PUBLIC_SUPABASE_URL,
-  PUBLIC_SUPABASE_ANON_KEY=publishable, PUBLIC_SITE_URL, SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY=secret) and add the Netlify URL + `/studio` to the
-  Supabase auth redirect allow-list (currently localhost only).
+- [~] Netlify CONNECTED + auto-deploying on push (Justin, 2026-11-20). Still TODO:
+  confirm the 5 env vars are set (PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY=
+  publishable, PUBLIC_SITE_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY=secret) so
+  `materialize` bakes real content, and add the Netlify URL + `/studio` to the
+  Supabase auth redirect allow-list (currently localhost only) so magic-link login
+  works on the deployed Studio. **Create a Netlify build hook** and store it:
+  `update public.deploy_control set hook_url='…' where id=1;` — until set, both the
+  publish→rebuild trigger and the Studio "Deploy now" button are safe no-ops.
 - [x] Public render (M2) built: home/events/documents/groups/faq(+/<slug>) pages
   + SiteHeader/SiteFooter ported from Hope-Maine. Verified empty and with fixtures.
 - [ ] Audit gates (M6) not in CI; `tools/audit/*` `BASE_PAGES` still point at
   Hope-Maine's municipal routes — rewrite for this site's routes (now
   `/ /events /documents /groups /faq`) before wiring.
-- [ ] Studio is an auth/health shell only; per-collection CRUD + Email-queue tab = M5.
+- [x] **M5 DONE** — Studio now has full per-collection CRUD (list/create/edit/
+  delete/publish-unpublish) driven by `src/components/studio/collections.js`, the
+  Email-queue tab (approve→publish via a prefilled collection form, discard,
+  pending-count badge), the approved-senders admin panel, and a header "Deploy
+  now" button (`request_deploy()` RPC). Documents editor uploads to the private
+  `documents` bucket. Build clean; helper logic unit-checked.
 
 ## Open — build/scripts hygiene (from M1)
 - [x] materialize.mjs now deletes only `*.md` (was `rm -rf` the whole dir), so the
@@ -73,13 +82,40 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   but this repo has no Tailwind pipeline. Only the `:root` tokens, `@layer base`
   resets, `:focus-visible`, and the plain `patterns.css` classes render. Either
   add Tailwind v4 (`@tailwindcss/vite`) to light those up, or convert the pages
-  off them (M2 pages already avoid them and use scoped styles). Decide before M5.
+  off them (M2 pages already avoid them and use scoped styles). Did NOT block M5
+  (the Studio is a `client:only` SPA with its own self-contained inline CSS and
+  never imports primitives.css). Decide before the next public-page work / M6.
 - [ ] Astro logs "collection … is empty" for each collection on a fresh/no-DB
   build. Benign (pages render their empty state; disappears once content is
   materialized). Left as-is rather than seeding placeholder content.
 - [ ] `/faq` currently also has per-slug detail pages (`/faq/<slug>`). If the
   org prefers a single accordion-style FAQ page, that's a later swap; the plan
   called for `/faq/<slug>` so detail pages ship.
+
+## Open — Studio / findings (from M5)
+- [ ] **Live click-through not done.** Code builds and the helper logic is
+  unit-checked, but no one has driven the real Studio against the live DB yet.
+  Use the M1 recipe: `nvm use 22 && npm run dev`, mint a magic link via
+  `generateLink` with the service key, open it in a browser ON THIS MACHINE.
+  Exercise: create/publish one row per collection, upload a PDF to a document,
+  and (once an inbound_emails row exists) approve + discard from the queue.
+- [ ] **Datetime inputs use the BROWSER's timezone**, not `site.timezone`
+  (`isoToLocalInput`/`localInputToIso` in collections.js). Correct when the admin
+  machine runs in the org's zone (the normal case). If editors are in a different
+  zone than the org, event times will be off. Revisit with a proper tz-aware
+  picker only if that becomes real.
+- [ ] **"Edit before publish" from the queue** is covered functionally — Approve
+  opens an editable, prefilled collection form — but there's no separate "save as
+  draft from the queue" path; approving is aimed at publishing. Fine for now.
+- [ ] Guided first-login walkthrough + inline `?` help (ebneo Studio pattern) not
+  built. Deferred UX polish.
+- [ ] The **approve prefill** maps intent→collection and fills title=subject,
+  body/answer=raw_text. It does NOT yet read structured fields out of
+  `classifier_json` (e.g. an event's parsed start time) — the human fills those in
+  the form. Enrich once the M4 classifier output shape is pinned down.
+- [ ] Removed the stale `FIGURES_BUCKET='figures'` export from supabaseClient.js
+  (leftover from ebneo); now exports `MEDIA_BUCKET`/`DOCUMENTS_BUCKET` matching
+  0005_storage.sql.
 
 ## Decisions to revisit
 - [ ] Classifier model = `claude-opus-4-8`. Revisit `claude-haiku-4-5` for cost
@@ -92,6 +128,11 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   (this is a content CMS, not a ledger) — no Merkle checkpoint needed.
 
 ## Done (recent)
+- [x] M5 Studio CRUD + Email queue (2026-11-20): new modules
+  `src/components/studio/collections.js` (field specs + coercion/slug/datetime
+  helpers) and a rewritten `StudioApp.jsx` (CollectionManager/CollectionForm/
+  Field/EmailQueue/SendersPanel/DeployButton). `/studio/index.astro` now passes
+  groupLabel/documentCategories/timezone. Build clean; helpers unit-checked.
 - [x] M2 public render: home/events/documents/groups/faq(+/<slug>) pages reading the
   five materialized collections; SiteHeader/SiteFooter ported; timezone-aware event
   times (`src/lib/format.ts`); cancelled-event strike-through; document a11y flag;
