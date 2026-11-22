@@ -30,7 +30,9 @@ import {
 
 const TIMEZONE = process.env.SITE_TIMEZONE || "America/New_York";
 const REVIEW_THRESHOLD = Number(process.env.REVIEW_THRESHOLD || "0.85");
-const SITE_NAME = process.env.SITE_NAME || "our website";
+// ORG_NAME, not SITE_NAME: Netlify reserves SITE_NAME as a read-only build var
+// (the site slug), so it would override ours. Fall back to the old name + default.
+const SITE_NAME = process.env.ORG_NAME || process.env.SITE_NAME || "our website";
 const SITE_URL = (process.env.PUBLIC_SITE_URL || process.env.URL || "").replace(/\/$/, "");
 const ADMIN_NOTIFY = process.env.ADMIN_NOTIFY_ADDRESS || "";
 const UNDO_WINDOW_HOURS = Number(process.env.UNDO_WINDOW_HOURS || "24");
