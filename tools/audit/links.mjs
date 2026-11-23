@@ -3,12 +3,11 @@
 
 import { BASE, launch } from "./browser.mjs";
 
+// The always-present index pages. Internal link discovery below crawls out to
+// whatever detail pages (/faq/<slug> etc.) these actually link to, so the list
+// stays correct whether the site is populated or a blank template.
 const ROUTES = [
-  "/", "/government", "/departments", "/departments/code-enforcement",
-  "/meetings", "/news", "/documents", "/how-do-i",
-  "/how-do-i/pay-my-property-taxes", "/how-do-i/register-a-car",
-  "/how-do-i/apply-for-general-assistance", "/schools",
-  "/about", "/contact", "/report/road",
+  "/", "/events", "/documents", "/groups", "/faq",
 ];
 
 (async () => {

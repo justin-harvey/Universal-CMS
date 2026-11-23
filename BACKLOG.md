@@ -7,6 +7,44 @@ decisions to revisit, and known gaps that don't belong to a single milestone.
 
 Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune the rest).
 
+## Open — go-live (2026-11-22)
+- [x] **Netlify build was failing** — `SUPABASE_SERVICE_ROLE_KEY` in Netlify was
+  truncated to 32 chars (missing the trailing `_DjH_YAwb`). Re-pasted the full
+  41-char `sb_secret_…` value → build green, materialize bakes content.
+- [x] **Canonical URL bug** — `Base.astro` built the canonical `<link>` from the
+  hardcoded `site.siteUrl` constant (localhost) instead of `Astro.site`
+  (derived from `PUBLIC_SITE_URL`). Fixed @ `2c7df27`, verified live. M4
+  undo/receipt links were unaffected (read `PUBLIC_SITE_URL` at runtime).
+- [x] **Netlify env vars confirmed set** — all 15 present (Supabase x4, Postmark
+  x3, Anthropic, MAIL_FROM/ORG_NAME/ADMIN_NOTIFY_ADDRESS, PUBLIC_SITE_URL,
+  SITE_TIMEZONE, REVIEW_THRESHOLD, UNDO_SIGNING_SECRET).
+- [x] **Build hook created** — `6b03927346457533b6144416` (branch main). Trigger
+  URL `https://api.netlify.com/build_hooks/6b03927346457533b6144416`.
+- [x] **Store the hook in `deploy_control`** — DONE (2026-11-22) via new
+  `scripts/set-deploy-hook.mjs` (service-role upsert of the singleton row,
+  bypasses RLS), run against the live DB and read back to confirm:
+  `hook_url=https://api.netlify.com/build_hooks/6b03927346457533b6144416`,
+  `debounce_seconds=60`, `last_triggered_at=(never)`. The publish→rebuild
+  trigger + Studio "Deploy now" button are now live, no longer no-ops.
+  Re-runnable: `node --env-file=.env scripts/set-deploy-hook.mjs <url>`.
+- [ ] **Supabase auth redirect allow-list still localhost-only** → magic-link
+  login FAILS on the live Studio. Add Site URL + `/studio` + `/**` for
+  `https://universal-cms.netlify.app`.
+- [x] **`robots.txt` + sitemap** — DONE (2026-11-22). Added `@astrojs/sitemap`
+  (pinned `3.2.1` — **3.7.x uses the `astro:routes:resolved` hook that only
+  exists in Astro 5; on this Astro 4.16 project it crashes at build:done with
+  `Cannot read properties of undefined (reading 'reduce')`, so stay on 3.2.x
+  until Astro 5**) wired in `astro.config.mjs` with `filter` excluding `/studio`,
+  plus a build-time `src/pages/robots.txt.ts` endpoint (Allow all, Disallow
+  /studio, `Sitemap:` pointer). Both read the per-deploy site URL (Astro.site ←
+  PUBLIC_SITE_URL) so they stay multi-tenant — no hardcoded host. Verified in a
+  local build: `dist/robots.txt`, `dist/sitemap-index.xml`, `dist/sitemap-0.xml`
+  all emit, `/studio` absent from the sitemap.
+- [ ] **`site.config.ts` still the blank template** ("Example Organisation",
+  `post@example.org`, `1 Main Street`). Replace with the real org identity.
+- [ ] **Netlify CLI** now logged in (Dean Burke) + repo linked (siteId
+  `f3b505e4-adc6-4140-9cb1-32f7248cfdee`). `.netlify/` is gitignored.
+
 ## Open — pipeline finish (M4)
 - [x] inbound-email.ts TODO (a) DONE: PDF attachments upload to the private
   `documents` bucket (one row per PDF) with the accessibility gate via the new
@@ -22,13 +60,13 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   notify — all stamped with the loop-prevention headers.
 - [x] Admin notification on hold → `ADMIN_NOTIFY_ADDRESS` env (mirrors
   site.config.email.adminNotifyAddress). DONE.
-- [ ] **M4 is CODE-complete but not live.** To finish: create a Postmark Inbound
-  server/webhook pointed at `/api/inbound-email?token=<POSTMARK_WEBHOOK_TOKEN>`,
-  verify SPF/DKIM pass-through on that server, set the outbound env on Netlify
-  (`POSTMARK_SERVER_TOKEN`, `MAIL_FROM`, `SITE_NAME`, `ADMIN_NOTIFY_ADDRESS`,
-  `UNDO_WINDOW_HOURS`), add a sender to `approved_senders`, and send one real
-  email end to end (plus one with a PDF, and one low-confidence/`unknown` to see
-  the queue + admin notify).
+- [ ] **M4 is CODE-complete + env now set; not yet exercised.** Remaining: in
+  Postmark, point the Default Inbound Stream webhook at
+  `/api/inbound-email?token=<POSTMARK_WEBHOOK_TOKEN>` and verify SPF/DKIM
+  pass-through; add a sender to `approved_senders` (Studio → Email queue); send
+  one real email end to end (plus one with a PDF, and one low-confidence/`unknown`
+  to see the queue + admin notify), then click the undo link. Proof probe: with
+  the webhook token matching, `POST {}` flips 401 → `Dropped: unrecognized sender.`
 - [ ] **Approve-prefill enrichment:** the Studio approve flow + the webhook fill
   title/body from subject/raw_text but don't yet read `classifier_json`'s parsed
   fields (event start time, category, pin). Wire those through once real
@@ -69,9 +107,12 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   publish→rebuild trigger and the Studio "Deploy now" button are safe no-ops.
 - [x] Public render (M2) built: home/events/documents/groups/faq(+/<slug>) pages
   + SiteHeader/SiteFooter ported from Hope-Maine. Verified empty and with fixtures.
-- [ ] Audit gates (M6) not in CI; `tools/audit/*` `BASE_PAGES` still point at
-  Hope-Maine's municipal routes — rewrite for this site's routes (now
-  `/ /events /documents /groups /faq`) before wiring.
+- [~] Audit gates (M6): `tools/audit/*` routes REWRITTEN (2026-11-22) for this
+  site — `a11y.mjs` BASE_PAGES + FAQ-answer discovery (`/how-do-i/`→`/faq/`),
+  `links.mjs` ROUTES trimmed to the 5 index pages (internal-link crawl finds the
+  rest), `nojs.mjs` answer-first journey now starts at `/faq` and follows
+  `/faq/<slug>`. All three GREEN against a local preview (links 0 broken, nojs
+  pass, a11y 0 contrast/0 console errors). STILL TODO: wire into CI.
 - [x] **M5 DONE** — Studio now has full per-collection CRUD (list/create/edit/
   delete/publish-unpublish) driven by `src/components/studio/collections.js`, the
   Email-queue tab (approve→publish via a prefilled collection form, discard,

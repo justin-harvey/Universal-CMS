@@ -1,12 +1,12 @@
 // Gate: the site's core journey works with scripts blocked.
 //
-// Brave and similar browsers block scripts by default, and this is a
-// municipal site — "works only with JavaScript" is not an acceptable answer
-// for someone trying to find out when their taxes are due.
+// Brave and similar browsers block scripts by default, and a public-facing
+// CMS site — "works only with JavaScript" is not an acceptable answer for
+// someone trying to read an answer to a common question.
 //
-// The specific invariant: following a task link from the home page must land
-// on a page where the answer is the first thing you read. This replaced an
-// earlier check for whether the right accordion row had opened; that design
+// The specific invariant: following an answer link from the FAQ index must
+// land on a page where the answer is the first thing you read. This replaced
+// an earlier check for whether the right accordion row had opened; that design
 // is gone precisely because it was hard to get right without script.
 
 import { BASE, launch, devices } from "./browser.mjs";
@@ -17,17 +17,17 @@ async function run(jsEnabled) {
   const page = await context.newPage();
   const label = `JavaScript ${jsEnabled ? "ENABLED" : "DISABLED"} (Pixel 5)`;
 
-  await page.goto(BASE + "/", { waitUntil: "load" });
+  await page.goto(BASE + "/faq", { waitUntil: "load" });
 
-  // Follow whatever answer the home page actually links to, rather than a
+  // Follow whatever answer the FAQ index actually links to, rather than a
   // fixed question. On a blank template with no published answers there is
   // no such journey to test, so the gate passes vacuously.
-  // The trailing slash means this matches answer pages (/how-do-i/<slug>)
-  // but not the index (/how-do-i).
-  const link = page.locator('main a[href*="/how-do-i/"]').first();
+  // The trailing slash means this matches answer pages (/faq/<slug>)
+  // but not the index (/faq).
+  const link = page.locator('main a[href*="/faq/"]').first();
   if ((await link.count()) === 0) {
     console.log(`\n### ${label} ###`);
-    console.log("  no published answer is linked from the home page — nothing to test");
+    console.log("  no published answer is linked from the FAQ index — nothing to test");
     console.log("  PASS");
     await browser.close();
     return true;

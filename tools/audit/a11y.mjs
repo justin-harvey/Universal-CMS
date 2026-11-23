@@ -3,12 +3,11 @@
 
 import { BASE, launch } from "./browser.mjs";
 
-// The always-present pages. "How Do I" answer pages are discovered from the
-// running site at audit time (below), so this list stays correct whether the
-// site is fully populated or a blank template with no answers published yet.
+// The always-present pages. FAQ answer pages are discovered from the running
+// site at audit time (below), so this list stays correct whether the site is
+// fully populated or a blank template with no answers published yet.
 const BASE_PAGES = [
-  "/", "/government", "/departments", "/departments/code-enforcement",
-  "/meetings", "/news", "/documents", "/how-do-i", "/schools", "/about", "/contact", "/report/road",
+  "/", "/events", "/documents", "/groups", "/faq",
 ];
 
 // WCAG relative luminance + contrast ratio
@@ -41,12 +40,12 @@ function parse(c) {
   page.on("pageerror", (e) => errors.push(String(e.message)));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
 
-  // Discover up to two published "How Do I" answer pages so the audit tests
-  // real detail pages on a populated site, and tests none on a blank one.
-  await page.goto(`${BASE}/how-do-i`, { waitUntil: "networkidle" });
+  // Discover up to two published FAQ answer pages so the audit tests real
+  // detail pages on a populated site, and tests none on a blank one.
+  await page.goto(`${BASE}/faq`, { waitUntil: "networkidle" });
   const faqPaths = await page.evaluate(() =>
     [...new Set(
-      [...document.querySelectorAll('a[href*="/how-do-i/"]')].map((a) => new URL(a.href).pathname),
+      [...document.querySelectorAll('a[href*="/faq/"]')].map((a) => new URL(a.href).pathname),
     )].slice(0, 2),
   );
   const PAGES = [...BASE_PAGES, ...faqPaths];
