@@ -26,7 +26,7 @@ const pageTitle = title ? `${title} · ${site.name}` : siteDisplayName;
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}
-    <link rel="canonical" href={new URL(Astro.url.pathname, site.siteUrl)} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site ?? site.siteUrl)} />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
