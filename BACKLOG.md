@@ -7,6 +7,66 @@ decisions to revisit, and known gaps that don't belong to a single milestone.
 
 Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune the rest).
 
+## Path to real product (roadmap, 2026-11-23)
+Gap analysis from working-demo to shippable product, prioritized. Full narrative
++ ordering rationale in `HANDOFF-2026-11-23-path-to-product.md`. The one decision
+that reorders Tier 2+ is **SaaS (we host many orgs) vs self-host/OSS** — unmade.
+
+### Tier 1 — Finish the loop (NOT a working product until these pass)
+The email-to-publish headline feature has never run end to end. These are small
+(hours) and unlock a true demo. All are Justin's external-dashboard tasks; the
+detail lives under "Open — go-live" and "Open — pipeline finish (M4)" below.
+- [ ] **T1.1 Supabase auth redirect allow-list** → live Studio magic-link login
+  works (Site URL + `/studio` + `/**` for the Netlify host). Blocks T1.3.
+- [ ] **T1.2 Postmark inbound webhook** wired + one real email classify→publish→
+  undo (plain / with-PDF / `unknown`). Proof probe: `POST {}` w/ real token flips
+  401 → `Dropped: unrecognized sender.` Claude can pre-seed `approved_senders` +
+  run the probe.
+- [ ] **T1.3 Live Studio click-through** (create/publish per collection, PDF
+  upload, approve/discard a queue item). Blocked by T1.1; needs a GUI browser on
+  this machine (M1 magic-link recipe).
+
+### Tier 2 — Repeatable provisioning (biggest "someone else can run it" gap)
+- [ ] **T2.1 Collapse the ~12-step manual stand-up into a setup script / hosted
+  onboarding.** Today = create Supabase project, push migrations (0006-grants
+  gotcha), set 15 Netlify env vars (one already shipped truncated), configure
+  Postmark + SPF/DKIM, set auth allow-list, create+store build hook, edit
+  `site.config.ts`. Two of these already caused go-live bugs. This is the largest
+  distance from "built" to "a customer has it."
+- [ ] **T2.2 DECIDE SaaS vs self-host/OSS** (reorders everything below).
+  - SaaS path → T2.3 multi-tenancy (M7: `to_alias` captured, not routed) + tenant
+    isolation + signup/billing/plan limits + onboarding UI.
+  - Self-host path → T2.4 setup automation + user-facing docs (today the full
+    path + gotchas live only in handoffs/BACKLOG/memory) + packaging.
+
+### Tier 3 — Harden the publish-by-email attack surface
+- [ ] **T3.1 Security pass on auto-publish-from-email.** SPF/DKIM policy is
+  softened (drops only when BOTH fail → lone-forwarder spoof gets through);
+  prompt-injection into the Claude classifier (email body is adversarial input);
+  RLS is the boundary and wants a review.
+- [ ] **T3.2 Rotate secrets** — `sb_secret_` key + DB password were pasted in chat.
+- [ ] **T3.3 Deliverability** — move off Supabase's rate-limited built-in
+  magic-link email to custom SMTP before onboarding many editors; verify outbound
+  (Postmark) sender auth.
+- [ ] **T3.4 Monitoring/alerting** on failed classifies, failed deploys, and
+  held/dropped mail (today only visible as `inbound_emails` rows).
+
+### Tier 4 — Completeness & confidence
+- [ ] **T4.1 Real test suite in CI** — webhook, classifier, materialize, RLS.
+  Helpers are only informally "unit-checked"; the audit gate is the sole
+  automated check today.
+- [ ] **T4.2 Tailwind decision** — `@utility` type-scale classes in
+  `primitives.css` are inert dead CSS; wire Tailwind v4 or strip them.
+- [ ] **T4.3 Classifier enrichment** — read structured fields (event start time,
+  category, pin) from `classifier_json` so a human doesn't re-key them.
+- [ ] **T4.4 Minor UX** — browser-tz datetime inputs vs `site.timezone`; no image
+  collection (PDF-only inbound); no guided first-login walkthrough.
+
+### Already product-grade (keep leading with it)
+- [x] Accessibility gate (WCAG-AA contrast, no-JS journey, PDF text-layer check)
+  now blocks deploys — a real differentiator most CMSs can't claim.
+- [x] Static-first architecture — cheap, fast, scrape-resistant document links.
+
 ## Open — go-live (2026-11-22)
 - [x] **Netlify build was failing** — `SUPABASE_SERVICE_ROLE_KEY` in Netlify was
   truncated to 32 chars (missing the trailing `_DjH_YAwb`). Re-pasted the full
