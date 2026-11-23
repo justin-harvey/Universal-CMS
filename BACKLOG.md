@@ -40,8 +40,11 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   PUBLIC_SITE_URL) so they stay multi-tenant — no hardcoded host. Verified in a
   local build: `dist/robots.txt`, `dist/sitemap-index.xml`, `dist/sitemap-0.xml`
   all emit, `/studio` absent from the sitemap.
-- [ ] **`site.config.ts` still the blank template** ("Example Organisation",
-  `post@example.org`, `1 Main Street`). Replace with the real org identity.
+- [x] **`site.config.ts` identity** — DONE (2026-11-22). Decision: this deploy is
+  the product demo, so it carries a neutral demo identity ("Universal CMS Demo",
+  tagline, hero intro) with no office/phone/public email (null officeName +
+  empty phone/email drop out of the footer cleanly). A real deployment runs
+  `npm run setup` / edits this file. Header comment updated off "blank template".
 - [ ] **Netlify CLI** now logged in (Dean Burke) + repo linked (siteId
   `f3b505e4-adc6-4140-9cb1-32f7248cfdee`). `.netlify/` is gitignored.
 
@@ -107,12 +110,19 @@ Convention: `[ ]` open · `[x]` done (leave a few done items for context, prune 
   publish→rebuild trigger and the Studio "Deploy now" button are safe no-ops.
 - [x] Public render (M2) built: home/events/documents/groups/faq(+/<slug>) pages
   + SiteHeader/SiteFooter ported from Hope-Maine. Verified empty and with fixtures.
-- [~] Audit gates (M6): `tools/audit/*` routes REWRITTEN (2026-11-22) for this
-  site — `a11y.mjs` BASE_PAGES + FAQ-answer discovery (`/how-do-i/`→`/faq/`),
+- [x] Audit gates (M6): DONE (2026-11-22). `tools/audit/*` routes REWRITTEN for
+  this site — `a11y.mjs` BASE_PAGES + FAQ-answer discovery (`/how-do-i/`→`/faq/`),
   `links.mjs` ROUTES trimmed to the 5 index pages (internal-link crawl finds the
   rest), `nojs.mjs` answer-first journey now starts at `/faq` and follows
-  `/faq/<slug>`. All three GREEN against a local preview (links 0 broken, nojs
-  pass, a11y 0 contrast/0 console errors). STILL TODO: wire into CI.
+  `/faq/<slug>`. Then: the three gates now EXIT NON-ZERO on hard regressions
+  (a11y = AA contrast + console/page errors; links = dead `#`/broken internal/
+  missing anchor; no-JS = journey broken); touch-target + under-AAA stay advisory.
+  New `scripts/audit-ci.mjs` serves `dist/` on :3000 (tiny static server, Astro
+  directory-format aware) and runs all three → `npm run audit:ci`. Netlify build
+  command appends `npx playwright install chromium && npm run audit:ci` so a
+  regression fails the deploy. Verified: passes clean, EXIT=1 on an injected dead
+  link. ROLLBACK (if the Netlify image can't launch Chromium): set the build
+  command back to `npm run build`; the gate still runs locally.
 - [x] **M5 DONE** — Studio now has full per-collection CRUD (list/create/edit/
   delete/publish-unpublish) driven by `src/components/studio/collections.js`, the
   Email-queue tab (approve→publish via a prefilled collection form, discard,

@@ -153,4 +153,14 @@ function parse(c) {
 
   console.log(`\n=== CONSOLE ERRORS: ${errors.length} ===`);
   errors.slice(0, 10).forEach((e) => console.log("  -", e));
+
+  // Gate: hard-fail only on WCAG AA contrast failures and JS console/page
+  // errors. Touch-target and under-AAA findings are reported above but stay
+  // advisory — the site's inline nav/footer links are sub-44px by design, so
+  // they must not block a deploy.
+  if (hardFails.length > 0 || errors.length > 0) {
+    console.error(`\na11y gate FAILED: ${hardFails.length} AA contrast failure(s), ${errors.length} console/page error(s)`);
+    process.exit(1);
+  }
+  console.log("\na11y gate passed");
 })();

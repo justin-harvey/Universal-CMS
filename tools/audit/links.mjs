@@ -97,4 +97,12 @@ const ROUTES = [
   }
   Object.entries(hosts).sort((a, b) => b[1] - a[1]).forEach(([h, n]) => console.log(`  ${n.toString().padStart(2)}  ${h}`));
   console.log(`  ${external.size} unique external links`);
+
+  // Gate: hard-fail on any dead href="#", broken internal link (status >= 400
+  // or bad in-page hash), or missing same-page anchor target.
+  if (deadTotal > 0 || bad.length > 0 || badAnchors.length > 0) {
+    console.error(`\nlinks gate FAILED: ${deadTotal} dead href="#", ${bad.length} broken internal link(s), ${badAnchors.length} missing anchor target(s)`);
+    process.exit(1);
+  }
+  console.log("\nlinks gate passed");
 })();

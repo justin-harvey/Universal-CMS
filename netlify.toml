@@ -10,8 +10,14 @@
 #   POSTMARK_WEBHOOK_TOKEN, POSTMARK_SERVER_TOKEN -> inbound verify + outbound receipts
 #   UNDO_SIGNING_SECRET                       -> signs the one-click undo links
 
+# After the build, the M6 audit gate (scripts/audit-ci.mjs) serves dist/ locally
+# and runs a11y / links / no-JS against it, failing the deploy on a WCAG-AA
+# contrast regression, a broken internal link, or a page that stops working
+# without JavaScript. The gate needs a headless Chromium, installed just-in-time.
+# ROLLBACK: if the build image can't launch Chromium, drop back to
+# `command = "npm run build"` — the gate still runs locally via `npm run audit:ci`.
 [build]
-  command = "npm run build"
+  command = "npm run build && npx --yes playwright install chromium && npm run audit:ci"
   publish = "dist"
   functions = "netlify/functions"
 

@@ -125,9 +125,16 @@ Check them off as they land.
   before publish" distinct from Approve (Approve already opens an editable form,
   so this is covered functionally). Live click-through still wants a manual pass
   via the M1 magic-link recipe.
-- [ ] **M6 — Audit gates in CI.** Wire `npm run audit` (a11y/links/no-JS) into the
-  Netlify build so a contrast regression, a sub-44px target, or a broken internal
-  link fails the deploy. Update the audit `BASE_PAGES` to this site's routes.
+- [x] **M6 — Audit gates in CI.** DONE (2026-11-22). Audit routes rewritten to
+  this site's pages (`f394b20`). The three gates now hard-fail on real
+  regressions (a11y: WCAG-AA contrast + console/page errors; links: dead `#` /
+  broken internal / missing anchor; no-JS: journey broken) — touch-target and
+  under-AAA stay advisory. New `scripts/audit-ci.mjs` serves `dist/` and runs all
+  three (`npm run audit:ci`), and the Netlify build command now runs
+  `npm run build && npx playwright install chromium && npm run audit:ci`, so a
+  regression fails the deploy. Verified: passes clean, fails on an injected dead
+  link. ROLLBACK if the build image can't launch Chromium: revert the netlify.toml
+  command to `npm run build`.
 - [ ] **M7 — Multi-tenant aliases (optional).** Honor `<slug>@domain` recipient
   routing in the webhook (`to_alias` is already captured) so one deploy can serve
   several sites, or document the one-deploy-per-tenant model as the default.

@@ -18,7 +18,8 @@
     "audit:a11y": "node tools/audit/a11y.mjs",
     "audit:links": "node tools/audit/links.mjs",
     "audit:nojs": "node tools/audit/nojs.mjs",
-    "audit": "npm run audit:a11y && npm run audit:links && npm run audit:nojs"
+    "audit": "npm run audit:a11y && npm run audit:links && npm run audit:nojs",
+    "audit:ci": "node scripts/audit-ci.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0",

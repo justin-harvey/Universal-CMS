@@ -19,9 +19,9 @@
  * identity and settings a developer sets once when standing the site up.
  *
  * ────────────────────────────────────────────────────────────────────
- *  THIS IS THE BLANK TEMPLATE.
- *  The values below are placeholders for a fictional organisation.
- *  Run `npm run setup` to replace them, or edit this file by hand.
+ *  The values below are the PRODUCT DEMO identity (universal-cms.netlify.app).
+ *  For a real deployment, run `npm run setup` to replace them, or edit this
+ *  file by hand — this is the one file a new site edits.
  * ────────────────────────────────────────────────────────────────────
  */
 
@@ -103,34 +103,37 @@ export type SiteConfig = {
 };
 
 export const site: SiteConfig = {
-  name: "Example Organisation",
-  legalName: "Example Organisation, Inc.",
-  tagline: "A placeholder organisation. Edit site.config.ts.",
+  name: "Universal CMS Demo",
+  legalName: "Universal CMS",
+  tagline: "A live demo of the email-first, accessible, static-first CMS.",
   timezone: "America/New_York",
   siteUrl: "http://localhost:4321",
   firstAdminEmail: "deanburke10@gmail.com",
-  adminTitleSuffix: " · Example Organisation",
+  adminTitleSuffix: " · Universal CMS",
 
   email: {
-    inboundAddress: "post@example.org",
+    inboundAddress: "post@universal-cms.demo",
     reviewThreshold: 0.85,
     undoWindowHours: 24,
     adminNotifyAddress: "deanburke10@gmail.com",
   },
 
+  // This is the product showcase deployment — no real office, phone, or public
+  // email. A null officeName drops the address block; empty phone/email drop out
+  // of the footer too (see SiteFooter.astro). A real deployment fills these in.
   contact: {
-    officeName: "Main Office",
-    addressLine: "1 Main Street",
-    cityStateZip: "Anytown, ST 00000",
-    phone: "(000) 555-0000",
-    email: "info@example.org",
-    officeHours: [{ days: "Monday – Friday", hours: "9:00 AM – 5:00 PM" }],
+    officeName: null,
+    addressLine: "",
+    cityStateZip: "",
+    phone: "",
+    email: "",
+    officeHours: [],
   },
 
   hero: {
-    alt: "Placeholder. No hero image is set yet.",
+    alt: "Universal CMS demo site",
     intro:
-      "This is a placeholder home page. Edit the intro in site.config.ts, and add content through the Studio at /studio — or simply email it in.",
+      "This is a live demo of Universal CMS, an email-first, accessible, static-first content system. Content is added through the Studio at /studio or simply emailed in, then baked to fast static pages.",
   },
 
   groupLabel: "Groups",
