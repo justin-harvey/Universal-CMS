@@ -27,10 +27,14 @@ detail lives under "Open — go-live" and "Open — pipeline finish (M4)" below.
   verified: headless drive of a fresh magic link lands authenticated in Studio as
   deanburke10@gmail.com, health strip green (115ms), 0 console errors. (Also
   ruled out: the seed admin — auth user + `editors` admin row already existed.)
-- [ ] **T1.2 Postmark inbound webhook** wired + one real email classify→publish→
-  undo (plain / with-PDF / `unknown`). Proof probe: `POST {}` w/ real token flips
-  401 → `Dropped: unrecognized sender.` Claude can pre-seed `approved_senders` +
-  run the probe.
+- [ ] **T1.2 Postmark inbound webhook → email-to-publish end to end.**
+  **▶ NEXT SESSION STARTS HERE.** STEP 0 (blocker, Justin): re-paste the full
+  `ANTHROPIC_API_KEY` in Netlify — it's truncated to 40 chars (should be ~100+),
+  which would break the classifier — then redeploy. Then: wire Postmark Default
+  Inbound Stream webhook → `/api/inbound-email?token=<POSTMARK_WEBHOOK_TOKEN>`;
+  send one real email classify→publish→undo (plain / with-PDF / `unknown`). Proof
+  probe: `POST {}` w/ the real token flips 401 → `Dropped: unrecognized sender.`
+  Claude can pre-seed `approved_senders` + run the probe once the key is fixed.
 - [ ] **T1.3 Live Studio click-through** (create/publish per collection, PDF
   upload, approve/discard a queue item). Blocked by T1.1; needs a GUI browser on
   this machine (M1 magic-link recipe).
