@@ -16,8 +16,17 @@ that reorders Tier 2+ is **SaaS (we host many orgs) vs self-host/OSS** — unmad
 The email-to-publish headline feature has never run end to end. These are small
 (hours) and unlock a true demo. All are Justin's external-dashboard tasks; the
 detail lives under "Open — go-live" and "Open — pipeline finish (M4)" below.
-- [ ] **T1.1 Supabase auth redirect allow-list** → live Studio magic-link login
-  works (Site URL + `/studio` + `/**` for the Netlify host). Blocks T1.3.
+- [x] **T1.1 Supabase auth allow-list → live Studio login WORKS.** DONE
+  2026-11-23. Allow-list URLs were the easy half; the real blocker was TWO
+  TRUNCATED Netlify env vars (same paste-truncation as the earlier service-role
+  key): `PUBLIC_SUPABASE_URL` baked as `…supabase.` (missing `co`) and
+  `PUBLIC_SUPABASE_ANON_KEY` 13 chars short → the Studio client hit an
+  unresolvable host (`ERR_NAME_NOT_RESOLVED`), so the magic link authenticated
+  but the session could never persist (bounced to sign-in). Fixed both via
+  `netlify env:set` from the known-good local `.env`, rebuilt (build hook),
+  verified: headless drive of a fresh magic link lands authenticated in Studio as
+  deanburke10@gmail.com, health strip green (115ms), 0 console errors. (Also
+  ruled out: the seed admin — auth user + `editors` admin row already existed.)
 - [ ] **T1.2 Postmark inbound webhook** wired + one real email classify→publish→
   undo (plain / with-PDF / `unknown`). Proof probe: `POST {}` w/ real token flips
   401 → `Dropped: unrecognized sender.` Claude can pre-seed `approved_senders` +
@@ -87,9 +96,18 @@ detail lives under "Open — go-live" and "Open — pipeline finish (M4)" below.
   `debounce_seconds=60`, `last_triggered_at=(never)`. The publish→rebuild
   trigger + Studio "Deploy now" button are now live, no longer no-ops.
   Re-runnable: `node --env-file=.env scripts/set-deploy-hook.mjs <url>`.
-- [ ] **Supabase auth redirect allow-list still localhost-only** → magic-link
-  login FAILS on the live Studio. Add Site URL + `/studio` + `/**` for
-  `https://universal-cms.netlify.app`.
+- [x] **Supabase auth allow-list + live Studio login** — DONE 2026-11-23 (see
+  T1.1 above). Allow-list set to live Site URL + `/studio` + `/**`; real blocker
+  was truncated `PUBLIC_SUPABASE_URL`/`PUBLIC_SUPABASE_ANON_KEY` in Netlify, fixed.
+- [ ] **Netlify env-var truncation is RECURRING** (3 so far: service-role key,
+  PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY — all cut off on paste). Audit
+  2026-11-23 vs local `.env`: all Supabase vars now match. STILL SUSPECT:
+  **`ANTHROPIC_API_KEY` is only 40 chars in Netlify** (current Anthropic keys are
+  ~100+) → almost certainly truncated; blocks the M4 classifier (T1.2). Re-paste
+  the full key in Netlify. Also `UNDO_SIGNING_SECRET` is 38 chars in Netlify vs 64
+  local (self-consistent in Netlify so undo still works, but not the intended
+  secret); POSTMARK_* can't be diffed (not in local .env). Local `.env` is the
+  source of truth for the Supabase/undo values.
 - [x] **`robots.txt` + sitemap** — DONE (2026-11-22). Added `@astrojs/sitemap`
   (pinned `3.2.1` — **3.7.x uses the `astro:routes:resolved` hook that only
   exists in Astro 5; on this Astro 4.16 project it crashes at build:done with

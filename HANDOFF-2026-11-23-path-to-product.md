@@ -1,5 +1,14 @@
 # Handoff — Path to a real product (2026-11-23)
 
+> **UPDATE (same day): T1.1 DONE — live Studio login works.** Root cause was two
+> truncated Netlify env vars (`PUBLIC_SUPABASE_URL` missing `co`,
+> `PUBLIC_SUPABASE_ANON_KEY` 13 chars short), not the allow-list or the DB. Fixed
+> via `netlify env:set` + rebuild; verified by driving a fresh magic link in
+> headless Chromium (lands authenticated, health strip green). **Before T1.2:**
+> `ANTHROPIC_API_KEY` in Netlify is only 40 chars (likely truncated too) and
+> powers the classifier — re-paste the full key first. See BACKLOG T1.1 + the
+> "Netlify env-var truncation is RECURRING" note.
+
 Strategic roadmap handoff. No code changed this session beyond the M6 gate + demo
 identity already shipped (`main @ 5ae44e5`, pushed, Netlify deploy `ready`,
 verified live). This doc captures the gap analysis from **working demo →
